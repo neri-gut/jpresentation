@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Nieoficjalny dodatek. Niezwiązany z Watch Tower."
+  },
+  "nav": {
+    "songs": "Pieśni",
+    "timer": "Stoper",
+    "media": "Multimedia",
+    "bible": "Biblia",
+    "browser": "Przeglądarka",
+    "text": "Tekst"
+  },
+  "panel": {
+    "play": "Odtwórz",
+    "next": "Dalej",
+    "previous": "Wstecz",
+    "showText": "Pokaż tekst"
+  },
+  "songs": {
+    "downloadHymnal": "Pobierz śpiewnik",
+    "slotStart": "Początkowa",
+    "slotMiddle": "Środkowa",
+    "slotEnd": "Końcowa",
+    "pendingCount": "{n} oczekuje"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Wiadomość dla mówcy"
+  },
+  "media": {
+    "thisWeek": "Ten tydzień",
+    "nextWeek": "Następny tydzień",
+    "downloadWeek": "Pobierz materiały tygodnia"
+  },
+  "bible": {
+    "downloadModule": "Pobierz Biblię",
+    "lookup": "Szukaj"
+  },
+  "settings": {
+    "uiLanguage": "Język aplikacji",
+    "contentLanguage": "Język treści"
+  }
+}

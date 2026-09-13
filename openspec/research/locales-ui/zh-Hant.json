@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "非官方輔助應用程式。與守望台無關。"
+  },
+  "nav": {
+    "songs": "歌曲",
+    "timer": "計時器",
+    "media": "多媒體",
+    "bible": "聖經",
+    "browser": "網頁瀏覽器",
+    "text": "文字"
+  },
+  "panel": {
+    "play": "播放",
+    "next": "下一個",
+    "previous": "上一個",
+    "showText": "顯示文字"
+  },
+  "songs": {
+    "downloadHymnal": "下載詩歌集",
+    "slotStart": "開始",
+    "slotMiddle": "中間",
+    "slotEnd": "結束",
+    "pendingCount": "{n} 項待下載"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "給演講者的訊息"
+  },
+  "media": {
+    "thisWeek": "本週",
+    "nextWeek": "下週",
+    "downloadWeek": "下載本週媒體"
+  },
+  "bible": {
+    "downloadModule": "下載聖經",
+    "lookup": "查找"
+  },
+  "settings": {
+    "uiLanguage": "應用程式語言",
+    "contentLanguage": "內容語言"
+  }
+}

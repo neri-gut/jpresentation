@@ -1,0 +1,26 @@
+schema: spec-driven
+project:
+  name: JPresentation
+  identifier: org.jpresentation.app
+  language: es
+stack:
+  desktop: tauri@2.11
+  frontend: vue3 + typescript + vite + pinia
+  backend: rust
+  db: sqlite-wal
+  mobile_later: tauri2-ios-android
+source_app:
+  name: JMultimedia
+  version: 2.8.01
+  year: 2025
+  platform: Windows / .NET Framework 4.7.2
+decisions:
+  recorder: removed
+  media_source: pluggable-provider (jw-org + local-folder)
+  extensibility: rust-traits + feature-modules + tauri-plugins
+conventions:
+  specs_are_behavior: true
+  design_holds_implementation: true
+  rfc2119: true
+  no_copyrighted_media_in_repo: true
+  no_unofficial_api_internals_in_specs: true

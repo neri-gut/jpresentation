@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Complemento non ufficiale. Non affiliato a Watch Tower."
+  },
+  "nav": {
+    "songs": "Cantici",
+    "timer": "Cronometro",
+    "media": "Multimedia",
+    "bible": "Bibbia",
+    "browser": "Browser Web",
+    "text": "Testo"
+  },
+  "panel": {
+    "play": "Riproduci",
+    "next": "Avanti",
+    "previous": "Indietro",
+    "showText": "Mostra testo"
+  },
+  "songs": {
+    "downloadHymnal": "Scarica il canzoniere",
+    "slotStart": "Inizio",
+    "slotMiddle": "Centrale",
+    "slotEnd": "Fine",
+    "pendingCount": "{n} in sospeso"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Messaggio all’oratore"
+  },
+  "media": {
+    "thisWeek": "Questa settimana",
+    "nextWeek": "Prossima settimana",
+    "downloadWeek": "Scarica i media della settimana"
+  },
+  "bible": {
+    "downloadModule": "Scarica la Bibbia",
+    "lookup": "Cerca"
+  },
+  "settings": {
+    "uiLanguage": "Lingua dell’applicazione",
+    "contentLanguage": "Lingua del contenuto"
+  }
+}

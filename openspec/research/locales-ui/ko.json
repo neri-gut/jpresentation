@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "비공식 보조 앱입니다. 워치타워와 관련이 없습니다."
+  },
+  "nav": {
+    "songs": "노래",
+    "timer": "타이머",
+    "media": "미디어",
+    "bible": "성서",
+    "browser": "웹 브라우저",
+    "text": "텍스트"
+  },
+  "panel": {
+    "play": "재생",
+    "next": "다음",
+    "previous": "이전",
+    "showText": "텍스트 표시"
+  },
+  "songs": {
+    "downloadHymnal": "노래책 다운로드",
+    "slotStart": "시작",
+    "slotMiddle": "중간",
+    "slotEnd": "끝",
+    "pendingCount": "대기 {n}"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "연사에게 보내는 메시지"
+  },
+  "media": {
+    "thisWeek": "이번 주",
+    "nextWeek": "다음 주",
+    "downloadWeek": "이번 주 미디어 다운로드"
+  },
+  "bible": {
+    "downloadModule": "성서 다운로드",
+    "lookup": "찾기"
+  },
+  "settings": {
+    "uiLanguage": "앱 언어",
+    "contentLanguage": "콘텐츠 언어"
+  }
+}

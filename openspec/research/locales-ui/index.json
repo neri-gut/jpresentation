@@ -1,0 +1,22 @@
+{
+  "source": "en",
+  "fallback": "en",
+  "default": "en",
+  "locales": [
+    { "id": "en", "name": "English", "dir": "ltr" },
+    { "id": "es", "name": "Español", "dir": "ltr" },
+    { "id": "fr", "name": "Français", "dir": "ltr" },
+    { "id": "de", "name": "Deutsch", "dir": "ltr" },
+    { "id": "it", "name": "Italiano", "dir": "ltr" },
+    { "id": "pt-BR", "name": "Português (Brasil)", "dir": "ltr" },
+    { "id": "ru", "name": "Русский", "dir": "ltr" },
+    { "id": "uk", "name": "Українська", "dir": "ltr" },
+    { "id": "pl", "name": "Polski", "dir": "ltr" },
+    { "id": "nl", "name": "Nederlands", "dir": "ltr" },
+    { "id": "id", "name": "Indonesia", "dir": "ltr" },
+    { "id": "ja", "name": "日本語", "dir": "ltr" },
+    { "id": "ko", "name": "한국어", "dir": "ltr" },
+    { "id": "zh-Hans", "name": "简体中文", "dir": "ltr" },
+    { "id": "zh-Hant", "name": "繁體中文", "dir": "ltr" }
+  ]
+}
