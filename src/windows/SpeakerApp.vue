@@ -1,13 +1,27 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { formatRemaining } from "@/composables/clockDisplay";
+import { useOutputStore } from "@/stores/output";
 import { useTimerStore } from "@/stores/timer";
 
 const { t } = useI18n();
+const output = useOutputStore();
 const timer = useTimerStore();
 const cursorVisible = ref(false);
 let hideTimer = 0;
+
+/** Full-surface clock when idle stage or speaker mode is HUD-only. */
+const fullHud = computed(
+  () => output.stage.kind === "none" || output.speakerMode === "hud_only",
+);
+
+const title = computed(
+  () => timer.clock.title ?? t("speaker.partPlaceholder"),
+);
+
+const time = computed(() => formatRemaining(timer.clock.remaining_ms));
 
 function onMove(): void {
   cursorVisible.value = true;
@@ -31,11 +45,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="speaker" :class="{ 'cursor-on': cursorVisible }">
+  <div
+    class="speaker"
+    :class="{ 'cursor-on': cursorVisible, 'is-full': fullHud, 'is-overlay': !fullHud }"
+    :data-hue="timer.clock.hue"
+  >
     <div class="hud">
-      <p class="title">{{ t("speaker.partPlaceholder") }}</p>
-      <p class="time">{{ t("speaker.timePlaceholder") }}</p>
-      <div class="bar" :data-state="timer.clock.state"><span /></div>
+      <p class="title">{{ title }}</p>
+      <p class="time">{{ time }}</p>
+    </div>
+    <div class="bar" :data-state="timer.clock.state" :data-hue="timer.clock.hue">
+      <span :style="{ width: `${timer.clock.progress_pct}%` }" />
     </div>
   </div>
 </template>
@@ -45,19 +65,50 @@ onUnmounted(() => {
   height: 100%;
   background: #000;
   color: #f4f4f4;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
   cursor: none;
   user-select: none;
-  padding: 1.25rem;
+  position: relative;
 }
 
 .speaker.cursor-on {
   cursor: default;
 }
 
-.hud {
+.speaker.is-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2rem 2.5rem;
+}
+
+.speaker.is-full .hud {
+  text-align: center;
+}
+
+.speaker.is-full .title {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1rem, 3.2vw, 2.2rem);
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.speaker.is-full .time {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(4.5rem, 18vw, 12rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.speaker.is-overlay {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.25rem 1.25rem 2.5rem;
+}
+
+.speaker.is-overlay .hud {
   min-width: 12rem;
   background: rgb(0 0 0 / 55%);
   border-radius: 8px;
@@ -65,23 +116,37 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.title {
+.speaker.is-overlay .title {
   margin: 0 0 0.15rem;
   font-size: 0.85rem;
   opacity: 0.85;
 }
 
-.time {
+.speaker.is-overlay .time {
   margin: 0;
   font-variant-numeric: tabular-nums;
   font-size: 1.8rem;
   font-weight: 650;
 }
 
+.speaker[data-hue="green"] .time {
+  color: #12b76a;
+}
+
+.speaker[data-hue="amber"] .time {
+  color: #f5a524;
+}
+
+.speaker[data-hue="red"] .time {
+  color: #f04438;
+}
+
 .bar {
-  margin-top: 0.35rem;
-  height: 4px;
-  border-radius: 99px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
   background: rgb(255 255 255 / 18%);
   overflow: hidden;
 }
@@ -91,5 +156,13 @@ onUnmounted(() => {
   width: 0;
   height: 100%;
   background: #12b76a;
+}
+
+.bar[data-hue="amber"] span {
+  background: #f5a524;
+}
+
+.bar[data-hue="red"] span {
+  background: #f04438;
 }
 </style>

@@ -6,6 +6,28 @@ Mostrar los horarios de la guía de actividades de **ese día/semana**, correrlo
 
 ## Requirements
 
+### Requirement: Una parte suelta sin guía
+Hasta que un `MeetingWeek` esté cargado, el operador SHALL poder armar **una** parte (título 1–80, minutos 1–180), iniciarla, pausarla y terminarla. El tick MUST vivir en Rust (~4 Hz). Vue MUST NOT ser dueña de un `setInterval` de cuenta. Esos gestos MUST NOT abrir ni cerrar medios.
+
+Pausar SHALL dejar la parte `armed` con el transcurrido. Terminar SHALL pasar a `idle` (no arma la siguiente mientras no haya cadena). A 0:00 la misma parte sigue y el desfase crece.
+
+#### Scenario: Tesoro de 10 minutos
+- GIVEN el reloj idle
+- WHEN el operador arma «Tesoro» 10 min e Iniciar
+- THEN orador y panel muestran restante `10:00` que decrece
+- AND el auditorio no cambia de medio
+
+#### Scenario: Pausa y retoma
+- GIVEN una parte running a 4:00 transcurridos de 10
+- WHEN pausa y luego Iniciar
+- THEN el restante sigue desde 6:00
+
+#### Scenario: Se pasan
+- GIVEN 10 min y transcurridos 11:20
+- WHEN el orador mira el HUD
+- THEN ve `+1:20` en rojo
+- AND la barra está al 100 %
+
 ### Requirement: Horarios de la guía del día
 Al abrir Cronómetro con una fecha, el sistema SHALL cargar el `MeetingWeek` de esa fecha si existe. Las filas son las secciones de la guía: canciones (con número), tesoro, gemas, lectura, AYF 1–n, vida cristiana 1–n, CBS, más introducción/conclusión si el parser o la plantilla las aportan. Minutos, título y color vienen de la guía; el operador MAY editar.
 

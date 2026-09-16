@@ -7,12 +7,16 @@ use tauri::{
 };
 
 use crate::domain::platform::{
-    speaker_placement, MonitorDto, PlatformSurface, SpeakerPlacement, SurfacesSetting,
+    audience_placement, speaker_placement, AudiencePlacement, MonitorDto, PlatformSurface,
+    SpeakerPlacement, SurfacesSetting,
 };
 use crate::error::AppError;
 
 const AUDIENCE: &str = "audience";
 const SPEAKER: &str = "speaker";
+const OPERATOR: &str = "operator";
+const PREVIEW_WIDTH: f64 = 960.0;
+const PREVIEW_HEIGHT: f64 = 540.0;
 
 /// Desktop adapter: `WebviewWindow` + OS monitors. Domain code never calls this type directly.
 pub struct DesktopSurface {
@@ -35,27 +39,93 @@ impl DesktopSurface {
             .into_iter()
             .map(|item| item.id)
             .collect();
-        let (placement, missing) = speaker_placement(setting, &ids);
-        self.place_audience(setting.audience_monitor_id.as_deref())?;
+        let operator_id = self.operator_monitor_id()?;
+        let audience = audience_placement(
+            setting.audience_monitor_id.as_deref(),
+            &ids,
+            operator_id.as_deref(),
+        );
+        self.apply_audience(&audience)?;
+        let (placement, missing) =
+            speaker_placement(setting, &ids, operator_id.as_deref());
         self.place_speaker(&placement)?;
         Ok(missing)
     }
 
-    fn get_or_create(&self, label: &str, hash: &str, decorated: bool) -> Result<WebviewWindow, AppError> {
-        if let Some(existing) = self.app.get_webview_window(label) {
-            return Ok(existing);
+    /// Destroys every webview except the operator. Called when the console closes.
+    pub fn close_owned_surfaces(&self) {
+        for (label, window) in self.app.webview_windows() {
+            if label != OPERATOR {
+                let _ = window.destroy();
+            }
         }
-        let window = WebviewWindowBuilder::new(
+    }
+
+    fn operator_monitor_id(&self) -> Result<Option<String>, AppError> {
+        let Some(operator) = self.app.get_webview_window(OPERATOR) else {
+            return Ok(None);
+        };
+        let monitor = operator
+            .current_monitor()
+            .map_err(|e| AppError::Invariant(e.to_string()))?;
+        Ok(monitor.map(|m| monitor_id(&m)))
+    }
+
+    fn surface_window(
+        &self,
+        label: &str,
+        hash: &str,
+        title: &str,
+        decorated: bool,
+    ) -> Result<WebviewWindow, AppError> {
+        if let Some(existing) = self.app.get_webview_window(label) {
+            let is_decorated = existing.is_decorated().unwrap_or(decorated);
+            if is_decorated == decorated {
+                let _ = existing.set_title(title);
+                return Ok(existing);
+            }
+            let _ = existing.destroy();
+        }
+
+        let builder = WebviewWindowBuilder::new(
             &self.app,
             label,
             WebviewUrl::App(format!("index.html{hash}").into()),
         )
-        .title("JPresentation")
+        .title(title)
         .decorations(decorated)
-        .visible(false)
-        .build()
-        .map_err(|e| AppError::Invariant(e.to_string()))?;
-        Ok(window)
+        .resizable(decorated)
+        .visible(false);
+
+        let builder = if let Some(operator) = self.app.get_webview_window(OPERATOR) {
+            builder
+                .parent(&operator)
+                .map_err(|e| AppError::Invariant(e.to_string()))?
+        } else {
+            builder
+        };
+
+        builder
+            .build()
+            .map_err(|e| AppError::Invariant(e.to_string()))
+    }
+
+    fn apply_audience(&self, placement: &AudiencePlacement) -> Result<(), AppError> {
+        match placement {
+            AudiencePlacement::Preview => {
+                let window =
+                    self.surface_window(AUDIENCE, "#/audience", "JPresentation — Audience", true)?;
+                self.place_preview(&window, 0)
+            }
+            AudiencePlacement::Fullscreen(id) => {
+                let window =
+                    self.surface_window(AUDIENCE, "#/audience", "JPresentation — Audience", false)?;
+                match self.monitor_by_id(id)? {
+                    Some(monitor) => Self::place_cover(&window, &monitor),
+                    None => self.place_preview(&window, 0),
+                }
+            }
+        }
     }
 
     fn monitor_by_id(&self, id: &str) -> Result<Option<tauri::Monitor>, AppError> {
@@ -66,12 +136,10 @@ impl DesktopSurface {
         Ok(monitors.into_iter().find(|m| monitor_id(m) == id))
     }
 
-    fn place_fullscreen(window: &WebviewWindow, monitor: &tauri::Monitor) -> Result<(), AppError> {
+    fn place_cover(window: &WebviewWindow, monitor: &tauri::Monitor) -> Result<(), AppError> {
         let pos = monitor.position();
         let size = monitor.size();
-        window
-            .set_fullscreen(false)
-            .map_err(|e| AppError::Invariant(e.to_string()))?;
+        let _ = window.set_fullscreen(false);
         window
             .set_decorations(false)
             .map_err(|e| AppError::Invariant(e.to_string()))?;
@@ -90,16 +158,28 @@ impl DesktopSurface {
         Ok(())
     }
 
-    fn place_preview(window: &WebviewWindow) -> Result<(), AppError> {
-        window
-            .set_fullscreen(false)
-            .map_err(|e| AppError::Invariant(e.to_string()))?;
+    fn place_preview(&self, window: &WebviewWindow, cascade: u32) -> Result<(), AppError> {
+        let _ = window.set_fullscreen(false);
         window
             .set_decorations(true)
             .map_err(|e| AppError::Invariant(e.to_string()))?;
         window
-            .set_size(Size::Logical(LogicalSize::new(960.0, 540.0)))
+            .set_size(Size::Logical(LogicalSize::new(PREVIEW_WIDTH, PREVIEW_HEIGHT)))
             .map_err(|e| AppError::Invariant(e.to_string()))?;
+
+        let step = 48i32 * cascade as i32;
+        let mut x = 80 + step;
+        let mut y = 80 + step;
+        if let Some(operator) = self.app.get_webview_window(OPERATOR) {
+            if let Ok(pos) = operator.outer_position() {
+                x = pos.x + 40 + step;
+                y = pos.y + 80 + step;
+            }
+        }
+        window
+            .set_position(Position::Physical(PhysicalPosition { x, y }))
+            .map_err(|e| AppError::Invariant(e.to_string()))?;
+        let _ = window.unminimize();
         window
             .show()
             .map_err(|e| AppError::Invariant(e.to_string()))?;
@@ -109,7 +189,7 @@ impl DesktopSurface {
     fn hide_speaker(&self) -> Result<(), AppError> {
         if let Some(window) = self.app.get_webview_window(SPEAKER) {
             window
-                .hide()
+                .destroy()
                 .map_err(|e| AppError::Invariant(e.to_string()))?;
         }
         Ok(())
@@ -123,6 +203,7 @@ impl PlatformSurface for DesktopSurface {
             .primary_monitor()
             .map_err(|e| AppError::Invariant(e.to_string()))?;
         let primary_id = primary.as_ref().map(monitor_id);
+        let operator_id = self.operator_monitor_id().ok().flatten();
         let monitors = self
             .app
             .available_monitors()
@@ -132,6 +213,7 @@ impl PlatformSurface for DesktopSurface {
             .map(|m| {
                 let id = monitor_id(&m);
                 let is_primary = primary_id.as_deref() == Some(id.as_str());
+                let is_operator = operator_id.as_deref() == Some(id.as_str());
                 let pos = m.position();
                 let size = m.size();
                 MonitorDto {
@@ -140,6 +222,7 @@ impl PlatformSurface for DesktopSurface {
                     width: size.width,
                     height: size.height,
                     is_primary,
+                    is_operator,
                     position_x: pos.x,
                     position_y: pos.y,
                 }
@@ -148,40 +231,30 @@ impl PlatformSurface for DesktopSurface {
     }
 
     fn place_audience(&self, monitor_id: Option<&str>) -> Result<(), AppError> {
-        let window = self.get_or_create(AUDIENCE, "#/audience", false)?;
-        match monitor_id {
-            Some(id) => match self.monitor_by_id(id)? {
-                Some(monitor) => Self::place_fullscreen(&window, &monitor),
-                None => Self::place_preview(&window),
-            },
-            None => {
-                let count = self.list_monitors()?.len();
-                if count >= 2 {
-                    if let Some(secondary) = self
-                        .list_monitors()?
-                        .into_iter()
-                        .find(|m| !m.is_primary)
-                    {
-                        return self.place_audience(Some(&secondary.id));
-                    }
-                }
-                Self::place_preview(&window)
-            }
-        }
+        let ids: Vec<String> = self
+            .list_monitors()?
+            .into_iter()
+            .map(|item| item.id)
+            .collect();
+        let operator_id = self.operator_monitor_id()?;
+        let placement = audience_placement(monitor_id, &ids, operator_id.as_deref());
+        self.apply_audience(&placement)
     }
 
     fn place_speaker(&self, placement: &SpeakerPlacement) -> Result<(), AppError> {
         match placement {
             SpeakerPlacement::Hidden => self.hide_speaker(),
             SpeakerPlacement::Preview => {
-                let window = self.get_or_create(SPEAKER, "#/speaker", true)?;
-                Self::place_preview(&window)
+                let window =
+                    self.surface_window(SPEAKER, "#/speaker", "JPresentation — Speaker", true)?;
+                self.place_preview(&window, 1)
             }
             SpeakerPlacement::Monitor(id) => {
-                let window = self.get_or_create(SPEAKER, "#/speaker", false)?;
+                let window =
+                    self.surface_window(SPEAKER, "#/speaker", "JPresentation — Speaker", false)?;
                 match self.monitor_by_id(id)? {
-                    Some(monitor) => Self::place_fullscreen(&window, &monitor),
-                    None => Self::place_preview(&window),
+                    Some(monitor) => Self::place_cover(&window, &monitor),
+                    None => self.place_preview(&window, 1),
                 }
             }
         }

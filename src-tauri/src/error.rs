@@ -14,6 +14,10 @@ pub enum AppError {
     UnknownContentLanguage,
     #[error("monitor missing")]
     MonitorMissing,
+    #[error("no part is armed")]
+    ClockNotArmed,
+    #[error("the clock is not running")]
+    ClockNotRunning,
     #[error("invariant: {0}")]
     Invariant(String),
     #[error("io: {0}")]
@@ -31,6 +35,8 @@ impl AppError {
             Self::LastProfile => "LastProfile",
             Self::UnknownContentLanguage => "UnknownContentLanguage",
             Self::MonitorMissing => "MonitorMissing",
+            Self::ClockNotArmed => "ClockNotArmed",
+            Self::ClockNotRunning => "ClockNotRunning",
             Self::Invariant(_) => "Invariant",
             Self::Io(_) => "Io",
             Self::Db(_) => "Db",
@@ -79,6 +85,14 @@ mod tests {
         assert_eq!(
             AppErrorDto::from(AppError::MonitorMissing).code,
             "MonitorMissing"
+        );
+        assert_eq!(
+            AppErrorDto::from(AppError::ClockNotArmed).code,
+            "ClockNotArmed"
+        );
+        assert_eq!(
+            AppErrorDto::from(AppError::ClockNotRunning).code,
+            "ClockNotRunning"
         );
     }
 }

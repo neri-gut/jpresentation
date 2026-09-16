@@ -75,11 +75,15 @@ export interface PanelSetting {
   width: number;
 }
 
+/** How the speaker surface paints the stage. */
+export type SpeakerMode = "mirror" | "hud_only";
+
 /** Per-profile assignment of audience/speaker surfaces. */
 export interface SurfacesSetting {
   audience_monitor_id: string | null;
   speaker_monitor_id: string | null;
   use_speaker: boolean;
+  speaker_mode: SpeakerMode;
 }
 
 /** Midweek and weekend meeting times in the machine local timezone. */
@@ -97,6 +101,7 @@ export interface MonitorDto {
   width: number;
   height: number;
   is_primary: boolean;
+  is_operator: boolean;
   position_x: number;
   position_y: number;
 }
@@ -117,17 +122,55 @@ export interface StageSnapshot {
   kind: StageKind;
 }
 
-/** Clock state. Change 001 stays idle. */
-export type ClockState = "idle";
+/** Assignment clock. `armed` is ready or paused. */
+export type ClockState = "idle" | "armed" | "running";
 
-/** Versioned clock snapshot. */
+/** HUD color from remaining vs assigned. */
+export type ClockHue = "green" | "amber" | "red";
+
+/** Versioned clock snapshot owned by Rust. */
 export interface ClockSnapshot {
   rev: number;
   state: ClockState;
+  title: string | null;
+  assigned_ms: number;
+  elapsed_ms: number;
+  remaining_ms: number;
+  overtime_ms: number;
+  progress_pct: number;
+  hue: ClockHue;
+}
+
+/** Payload for `clock_arm`. */
+export interface ClockArmDto {
+  title: string;
+  minutes: number;
 }
 
 /** Combined output returned by `output_get`. */
 export interface OutputBundleDto {
   stage: StageSnapshot;
   clock: ClockSnapshot;
+  speaker_mode: SpeakerMode;
+}
+
+/** Speaker HUD flags. `message` is empty until a later change. */
+export interface SpeakerUiDto {
+  mode: SpeakerMode;
+  message: string;
+}
+
+/** Idle clock used before the first snapshot. */
+export function idleClock(): ClockSnapshot {
+  return {
+    rev: 0,
+    state: "idle",
+    title: null,
+    assigned_ms: 0,
+    elapsed_ms: 0,
+    remaining_ms: 0,
+    overtime_ms: 0,
+    progress_pct: 0,
+    hue: "green",
+  };
 }

@@ -2,7 +2,7 @@
 
 Migración de **JMultimedia 2.8.01** (Windows / .NET) a **Tauri 2.11 + Vue 3 + TypeScript + Rust + SQLite**.
 
-Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `029-perfil-congregacion` (`001` cerrado).
+Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `031-reloj-reunion` (`001`, `029` y `030` cerrados).
 
 ## Cómo leer
 
@@ -10,7 +10,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 2. Plataforma: `arquitectura`, `practicas`, `sincronizacion`, `extensibilidad`, `seguridad`, `rendimiento`, `tema`, `cache`, `onboarding`, `licencia-updater`, `fundidos`, `cadena-suministro`, `devcontainer`
 3. Dominios: `canciones`, `audio`, `atajos`, `alertas`, `cronometro`, `programa-semanal`, `multimedia`, `proveedor-medios`, `biblia`, `texto`, `navegador`, `panel`, `perfiles`, `ventanas`
 4. `grabador` — retirado
-5. Changes `001` … `029-perfil-congregacion`
+5. Changes `001` … `031-reloj-reunion`
 6. Research: `jwpub-mwb-S-202609`, `pub-media-getpubmedialinks`, `biblia-jwpub`, `idiomas`, `json-locales`, `himnario-sjjm`, `plantillas-evento`, `textos-csv`, `huecos`
 
 ## Decisiones
@@ -81,13 +81,15 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 | 027 | Cache, onboarding, updater |
 | 028 | Fundidos, zoom imagen, PDF |
 | 029 | Perfil de congregación (CRUD, contenido, horario, tema, monitores, CI) |
+| 030 | Superficies: dueño, preview real, HUD a pantalla |
+| 031 | Reloj de reunión (una parte), HUD vivo, modo orador |
 
 ## Implementación (cuando salgamos de specs)
 
 1. `001` scaffold + devcontainer + lockfiles — **hecho**  
-2. Perfiles, i18n, tema, monitores — change `029`  
-3. Superficies + sync + panel  
-4. Cronómetro + plantillas + textos  
+2. Perfiles, i18n, tema, monitores — change `029` — **hecho**  
+3. Superficies + sync + panel — `030` hecho; panel Stage/Audio/Mensajes y sync de vídeo después  
+4. Cronómetro — change `031` (una parte suelta + HUD vivo); plantillas + textos después  
 5. Adaptador JWPUB + catálogo  
 6. Guía → multimedia de la semana  
 7. Himnario + audio  

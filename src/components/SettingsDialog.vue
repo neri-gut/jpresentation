@@ -11,6 +11,8 @@ import type {
   AppearanceSetting,
   ContentLanguageDto,
   MeetingScheduleSetting,
+  MonitorDto,
+  SpeakerMode,
   SurfacesSetting,
 } from "@/types/dto";
 
@@ -272,6 +274,26 @@ function onUseSpeaker(event: Event): void {
   });
 }
 
+function onSpeakerMode(mode: SpeakerMode): void {
+  void saveSurfaces({
+    ...surfaces.value,
+    speaker_mode: mode,
+  });
+}
+
+function monitorLabel(monitor: MonitorDto): string {
+  const size = `${monitor.width}×${monitor.height}`;
+  const tags: string[] = [];
+  if (monitor.is_operator) {
+    tags.push(t("settings.consoleDisplay"));
+  }
+  if (monitor.is_primary) {
+    tags.push(t("settings.primaryDisplay"));
+  }
+  const suffix = tags.length > 0 ? ` — ${tags.join(", ")}` : "";
+  return `${monitor.name} (${size})${suffix}`;
+}
+
 async function identifyMonitors(): Promise<void> {
   try {
     await invokeCommand("monitors_identify");
@@ -432,7 +454,7 @@ async function identifyMonitors(): Promise<void> {
           <select :value="surfaces.audience_monitor_id ?? ''" @change="onAudienceChange">
             <option value="">{{ t("settings.previewMonitor") }}</option>
             <option v-for="monitor in audienceOptions" :key="monitor.id" :value="monitor.id">
-              {{ monitor.name }} ({{ monitor.width }}×{{ monitor.height }})
+              {{ monitorLabel(monitor) }}
             </option>
           </select>
         </label>
@@ -453,10 +475,33 @@ async function identifyMonitors(): Promise<void> {
           >
             <option value="">{{ t("settings.previewMonitor") }}</option>
             <option v-for="monitor in speakerOptions" :key="monitor.id" :value="monitor.id">
-              {{ monitor.name }} ({{ monitor.width }}×{{ monitor.height }})
+              {{ monitorLabel(monitor) }}
             </option>
           </select>
         </label>
+        <fieldset class="modes" :disabled="!surfaces.use_speaker">
+          <legend>{{ t("settings.speakerMode") }}</legend>
+          <label class="check">
+            <input
+              type="radio"
+              name="speaker-mode"
+              value="mirror"
+              :checked="surfaces.speaker_mode === 'mirror'"
+              @change="onSpeakerMode('mirror')"
+            />
+            {{ t("settings.speakerMirror") }}
+          </label>
+          <label class="check">
+            <input
+              type="radio"
+              name="speaker-mode"
+              value="hud_only"
+              :checked="surfaces.speaker_mode === 'hud_only'"
+              @change="onSpeakerMode('hud_only')"
+            />
+            {{ t("settings.speakerHudOnly") }}
+          </label>
+        </fieldset>
         <button type="button" :disabled="monitors.length === 0" @click="identifyMonitors">
           {{ t("settings.identify") }}
         </button>
@@ -548,6 +593,23 @@ label {
   gap: 0.5rem;
 }
 
+.modes {
+  margin: 0;
+  padding: 0.4rem 0 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modes legend {
+  padding: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--jp-muted);
+}
+
 .row {
   display: flex;
 }
@@ -559,6 +621,7 @@ label {
 select,
 input[type="text"],
 input[type="time"],
+input[type="number"],
 input:not([type]) {
   border: 1px solid var(--jp-border);
   background: var(--jp-bg);

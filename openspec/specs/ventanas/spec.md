@@ -24,6 +24,30 @@ El sistema SHALL soportar:
 - THEN la salida de auditorio puede abrirse como ventana previsualizable (Picture-in-Picture / ventana flotante)
 - AND no se fuerza fullscreen sobre la consola
 
+### Requirement: El operador es dueño del proceso
+Cerrar la ventana Operador MUST destruir Auditorio, Orador e identify y dejar el proceso sin webviews huérfanos. Cerrar solo Auditorio u Orador MUST NOT cerrar la consola.
+
+#### Scenario: Cierra la consola
+- GIVEN operador, auditorio y orador abiertos
+- WHEN el operador cierra la consola
+- THEN no quedan ventanas de JPresentation
+- AND el proceso no sigue solo con el auditorio negro
+
+### Requirement: Preview nunca cubre la consola
+`audience_monitor_id` vacío SHALL abrir una ventana flotante decorada (≈960×540), aunque haya un segundo monitor. MUST NOT auto-asignar la secundaria. Fullscreen (cover del monitor, sin exclusive fullscreen del SO) solo si el id existe, hay ≥2 pantallas y **no** es el monitor donde está el operador. La misma regla aplica al orador: monitor del operador o único display → flotante visible, nunca encima a pantalla completa de la UI.
+
+#### Scenario: Un monitor, previsualizar
+- GIVEN un equipo con una sola pantalla
+- WHEN el operador deja Auditorio en «ventana de previsualización» y activa Orador sin pantalla dedicada
+- THEN aparecen dos ventanas flotantes (auditorio y orador) junto a la consola
+- AND ninguna se pone fullscreen sobre el operador
+
+#### Scenario: Dos monitores, preview explícito
+- GIVEN escritorio extendido
+- WHEN Auditorio está en «ventana de previsualización» (id vacío)
+- THEN el auditorio es flotante en el monitor del operador
+- AND la secundaria no se cubre sola
+
 #### Scenario: Runtime móvil futuro
 - GIVEN un target Android/iOS
 - WHEN no existen monitores extendidos
@@ -39,7 +63,7 @@ La superficie Orador SHALL mostrar el **mismo fotograma** que el auditorio (imag
 - minutos asignados (secundario)
 - barra inferior de progreso: verde al inicio → ámbar en el último tramo → rojo al cumplirse y en desfase
 
-El HUD MUST ocupar poco (esquina o franja) para no tapar el medio. MUST contrastar sobre vídeo claro u oscuro (placa semitransparente). Si el auditorio está en negro / sin medio, el orador sigue viendo el cronómetro sobre fondo oscuro.
+El HUD MUST ocupar poco (esquina o franja) para no tapar el medio. MUST contrastar sobre vídeo claro u oscuro (placa semitransparente). Si el auditorio está en negro / sin medio, el orador SHALL ver el cronómetro **a pantalla completa** (título, `mm:ss` grande, barra inferior a todo el ancho) sobre fondo oscuro. Cuando hay vídeo o imagen, el HUD compacto no tapa el medio y la barra inferior MUST seguir visible.
 
 Los **mensajes** al discursante SHALL ir a una franja propia (arriba o sobre el medio) que MUST NOT tapar ni sustituir el HUD de tiempo. Cerrar el mensaje no apaga el cronómetro.
 
@@ -88,7 +112,7 @@ En Configuración, por perfil:
 
 - **Usar monitor orador**: on/off (defecto off si hay < 3 pantallas; on si hay una libre además de consola y auditorio)
 - **Pantalla**: lista de monitores detectados (nombre, resolución). MUST NOT ser la misma que Auditorio. MAY ser la de consola solo como ventana flotante, no fullscreen encima de la UI
-- **Modo**: `espejo+HUD` (defecto, si hay recurso abierto) | `solo HUD` (siempre reloj sobre negro, aunque el auditorio tenga vídeo)
+- **Modo**: `espejo+HUD` (`mirror`, defecto, si hay recurso abierto) | `solo HUD` (`hud_only`: siempre reloj sobre negro, aunque el auditorio tenga vídeo). Celdas antiguas sin el campo = `mirror`.
 - **HUD**: opciones avanzadas (posición, escala, campos)
 - **Arrancar con la app**: abrir la superficie orador al cargar el perfil
 - **Identificar**: destello/nombre 2 s para saber qué pantalla es
@@ -164,6 +188,15 @@ Todo por perfil. El tiempo (restante o desfase) MUST seguir visible; no hay modo
 - WHEN inicia la reunión
 - THEN no hay tercera ventana
 - AND el tiempo se ve en el panel
+
+### Requirement: Lista de monitores etiquetada
+El selector SHALL marcar la pantalla de la consola («console») y la primaria del SO («primary»). La opción de id vacío SHALL llamarse ventana de previsualización, sin implicar que solo existe un monitor.
+
+#### Scenario: Dos monitores, preview
+- GIVEN escritorio extendido y Auditorio en preview
+- WHEN el operador abre Configuración
+- THEN ve «Preview window» como opción vacía
+- AND el display de la consola figura como console
 
 ### Requirement: Detección y persistencia de monitores
 El sistema SHALL enumerar monitores al arrancar y al conectar/desconectar pantallas. La asignación operador/auditorio/orador SHALL persistirse por perfil. Si un monitor desaparece, la ventana asociada SHALL moverse a la primaria sin perder el medio actual.

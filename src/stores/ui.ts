@@ -12,9 +12,13 @@ import type {
   SurfacesSetting,
 } from "@/types/dto";
 
-function parseJson<T>(value: string, fallback: T): T {
+function parseJson<T extends object>(value: string, fallback: T): T {
   try {
-    return JSON.parse(value) as T;
+    const parsed = JSON.parse(value) as Partial<T>;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return { ...fallback, ...parsed } as T;
+    }
+    return fallback;
   } catch {
     return fallback;
   }
@@ -35,6 +39,7 @@ const defaultSurfaces: SurfacesSetting = {
   audience_monitor_id: null,
   speaker_monitor_id: null,
   use_speaker: false,
+  speaker_mode: "mirror",
 };
 
 const defaultSchedule: MeetingScheduleSetting = {
@@ -135,7 +140,7 @@ export const useUiStore = defineStore("ui", () => {
   };
 });
 
-async function readSetting<T>(
+async function readSetting<T extends object>(
   profileId: string,
   key: string,
   fallback: T,

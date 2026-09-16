@@ -25,7 +25,13 @@ Cerrar → reposo (texto diario en auditorio). Pausa **no** cierra. Solo el oper
 Máster 0–100 del perfil. Play / Pausa / Stop del recurso con sonido (cántico, vídeo, stream, ambiente). Ambiente: Play/Stop y loop según `specs/audio`. Ranuras de cántico **Inicio / Central / Final** (número + Play): resuelven `HymnalLibrary`, no bajan la guía.
 
 ### Requirement: Bloque Cronómetro
-Parte vigente o armada, asignado, restante o desfase, Iniciar / Pausar reloj / Terminar / **regreso rápido**. Hora actual. No abre medios. Al Terminar arma la siguiente; Iniciar arranca la cuenta.
+Parte vigente o armada, asignado, restante o desfase, Iniciar / Pausar reloj / Terminar / **regreso rápido**. Hora actual. No abre medios. Al Terminar arma la siguiente; Iniciar arranca la cuenta. Hasta que exista cadena de partes, Terminar deja `idle`. Colapsado, MUST mostrar al menos el `mm:ss`. Si no hay ventana orador, este bloque SHALL ser el HUD del operador. La pestaña Cronómetro MAY reutilizar los mismos controles.
+
+#### Scenario: Orador desactivado
+- GIVEN `use_speaker = false` y una parte running
+- WHEN el operador mira el panel
+- THEN ve título, restante y barra
+- AND no hay tercera ventana
 
 ### Requirement: Bloque Biblia
 Campo de referencia, Enviar al stage, Anterior / Siguiente **página** (solo operador), Cerrar texto. La cola larga se edita en la pestaña Biblia; aquí va el ítem activo.

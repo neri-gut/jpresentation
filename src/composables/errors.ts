@@ -4,6 +4,8 @@ const CODE_KEYS: Record<string, string> = {
   LastProfile: "errors.lastProfile",
   UnknownContentLanguage: "errors.unknownContentLanguage",
   MonitorMissing: "errors.monitorMissing",
+  ClockNotArmed: "errors.clockNotArmed",
+  ClockNotRunning: "errors.clockNotRunning",
   NotFound: "errors.notFound",
   Busy: "errors.busy",
 };

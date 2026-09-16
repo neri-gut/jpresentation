@@ -1,10 +1,16 @@
 use serde::{Deserialize, Serialize};
 
+use super::clock::{AssignmentClock, ClockSnapshot, MeetingClock};
+use super::platform::SpeakerMode;
+
 /// Event name for stage snapshots. Audience and the operator panel subscribe.
 pub const OUTPUT_CHANGED: &str = "output://changed";
 
 /// Event name for clock snapshots. Speaker HUD and the operator timer subscribe.
 pub const TIMER_CHANGED: &str = "timer://changed";
+
+/// Event name for speaker mode (and later HUD flags / messages).
+pub const SPEAKER_UI_CHANGED: &str = "speaker://ui";
 
 /// What the audience is showing. Change 001 only has `none` (black stage).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -30,7 +36,8 @@ pub trait OutputPort: Send + Sync {
 #[derive(Debug, Clone)]
 pub struct OutputState {
     pub stage: StageSnapshot,
-    pub clock: super::clock::ClockSnapshot,
+    pub clock: AssignmentClock,
+    pub speaker_mode: SpeakerMode,
 }
 
 impl OutputState {
@@ -41,10 +48,8 @@ impl OutputState {
                 rev: 0,
                 kind: StageKind::None,
             },
-            clock: super::clock::ClockSnapshot {
-                rev: 0,
-                state: super::clock::ClockState::Idle,
-            },
+            clock: AssignmentClock::idle(),
+            speaker_mode: SpeakerMode::default(),
         }
     }
 }
@@ -55,9 +60,9 @@ impl OutputPort for OutputState {
     }
 }
 
-impl super::clock::MeetingClock for OutputState {
-    fn snapshot(&self) -> super::clock::ClockSnapshot {
-        self.clock.clone()
+impl MeetingClock for OutputState {
+    fn snapshot(&self) -> ClockSnapshot {
+        self.clock.snapshot()
     }
 }
 
@@ -65,5 +70,13 @@ impl super::clock::MeetingClock for OutputState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutputBundleDto {
     pub stage: StageSnapshot,
-    pub clock: super::clock::ClockSnapshot,
+    pub clock: ClockSnapshot,
+    pub speaker_mode: SpeakerMode,
+}
+
+/// Speaker HUD flags published when surfaces change. `message` stays empty until a later change.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SpeakerUiDto {
+    pub mode: SpeakerMode,
+    pub message: String,
 }

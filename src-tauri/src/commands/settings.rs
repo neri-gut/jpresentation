@@ -1,6 +1,7 @@
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::db::{SqliteSettingsStore, KEY_SURFACES};
+use crate::domain::output::{SpeakerUiDto, SPEAKER_UI_CHANGED};
 use crate::domain::platform::SurfacesSetting;
 use crate::domain::profile::{SettingDto, SettingKeyDto};
 use crate::error::{AppError, AppErrorDto};
@@ -39,6 +40,17 @@ pub fn settings_set(
                 message: e.to_string(),
                 rev: 0,
             })?;
+        {
+            let mut output = state.lock_output().map_err(AppErrorDto::from)?;
+            output.speaker_mode = surfaces.speaker_mode;
+        }
+        let _ = app.emit(
+            SPEAKER_UI_CHANGED,
+            SpeakerUiDto {
+                mode: surfaces.speaker_mode,
+                message: String::new(),
+            },
+        );
         let missing = DesktopSurface::new(app)
             .ensure_surfaces(&surfaces)
             .map_err(AppErrorDto::from)?;

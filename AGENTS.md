@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual de código es `029-perfil-congregacion`. `001` está cerrado.
+No implementes nada que no esté en un change abierto. El change actual de código es `031-reloj-reunion`. `001`, `029` y `030` están cerrados.
 
-## Change 029 (hacer ahora)
+## Change 031 (hacer ahora)
 
-Contrato de congregación sobre el scaffold de `001`: `content_langwritten` con semilla (sin red), CRUD de perfil (duplicar / borrar con confirmación, no borrar el último), horario de las dos reuniones, acento+densidad, identificar monitores, orador activo sin pantalla = preview, CI (`npm run build` + `cargo test --locked` + `cargo audit`). Sin wizard, sin JWPUB, sin catálogo HTTP.
+Reloj de dominio: una parte suelta (armar / iniciar / pausar / terminar), tick en Rust, HUD y panel pintan el snapshot. Modo orador `mirror` | `hud_only`. Lista de monitores con consola/primaria. Sin cadena de partes, sin JWPUB, sin vídeo.
 
 ## Prohibido
 

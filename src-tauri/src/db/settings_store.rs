@@ -87,7 +87,10 @@ fn validate_value(key: &str, value_json: &str) -> Result<(), AppError> {
             let value = parse_json::<AppearanceSetting>(value_json)?;
             validate_appearance(&value)
         }
-        KEY_SURFACES => parse_json::<SurfacesSetting>(value_json).map(|_| ()),
+        KEY_SURFACES => {
+            parse_json::<SurfacesSetting>(value_json)?;
+            Ok(())
+        }
         KEY_PANEL => parse_json::<PanelSetting>(value_json).map(|_| ()),
         KEY_MEETING_SCHEDULE => {
             let value = parse_json::<MeetingScheduleSetting>(value_json)?;

@@ -10,6 +10,7 @@ pub fn output_get(state: State<'_, AppState>) -> Result<OutputBundleDto, AppErro
     let output = state.lock_output().map_err(AppErrorDto::from)?;
     Ok(OutputBundleDto {
         stage: output.stage.clone(),
-        clock: output.clock.clone(),
+        clock: output.clock.snapshot(),
+        speaker_mode: output.speaker_mode,
     })
 }

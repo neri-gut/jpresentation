@@ -3,23 +3,27 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import TimerControls from "@/components/TimerControls.vue";
+import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
 import { useProfileStore } from "@/stores/profile";
+import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
 
 const { t } = useI18n();
 const ui = useUiStore();
 const profiles = useProfileStore();
+const timer = useTimerStore();
 const { panel } = storeToRefs(ui);
 
-const blocks = [
+const placeholders = [
   { id: "songs", labelKey: "panel.songs" },
   { id: "media", labelKey: "panel.media" },
   { id: "bible", labelKey: "panel.bible" },
-  { id: "timer", labelKey: "panel.timer" },
 ] as const;
 
 const width = computed(() => (panel.value.collapsed ? 44 : panel.value.width));
+const collapsedTime = computed(() => formatRemaining(timer.clock.remaining_ms));
 
 async function toggle(): Promise<void> {
   if (!profiles.current) {
@@ -46,9 +50,14 @@ async function toggle(): Promise<void> {
     >
       {{ panel.collapsed ? "«" : "»" }}
     </button>
-    <section v-for="block in blocks" :key="block.id" class="block">
+    <section v-for="block in placeholders" :key="block.id" class="block">
       <h2>{{ t(block.labelKey) }}</h2>
       <p v-if="!panel.collapsed">{{ t("panel.placeholder") }}</p>
+    </section>
+    <section class="block timer">
+      <h2>{{ t("panel.timer") }}</h2>
+      <TimerControls v-if="!panel.collapsed" />
+      <p v-else class="collapsed-time" :data-hue="timer.clock.hue">{{ collapsedTime }}</p>
     </section>
   </aside>
 </template>
@@ -70,7 +79,7 @@ async function toggle(): Promise<void> {
   font-size: 11px;
 }
 
-.collapsed .block p {
+.collapsed .block p:not(.collapsed-time) {
   display: none;
 }
 
@@ -99,5 +108,27 @@ async function toggle(): Promise<void> {
 .block p {
   margin: 0;
   color: var(--jp-muted);
+}
+
+.collapsed-time {
+  margin: 0.35rem 0 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--jp-mono);
+  font-weight: 650;
+  color: var(--jp-fg);
+}
+
+.collapsed-time[data-hue="green"] {
+  color: var(--jp-ok);
+}
+
+.collapsed-time[data-hue="amber"] {
+  color: var(--jp-warn);
+}
+
+.collapsed-time[data-hue="red"] {
+  color: var(--jp-danger);
 }
 </style>

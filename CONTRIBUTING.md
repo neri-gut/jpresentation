@@ -1,6 +1,6 @@
 # Contribuir a JPresentation
 
-Specs primero: `openspec/INDEX.md` y el change abierto (`029-perfil-congregacion`). No se implementa nada que no esté en un change.
+Specs primero: `openspec/INDEX.md` y el change abierto (`031-reloj-reunion`). No se implementa nada que no esté en un change.
 
 ## Entorno preferido
 

@@ -44,7 +44,15 @@
   },
   "timer": {
     "overtime": "+{time}",
-    "messagePlaceholder": "Message to the speaker"
+    "messagePlaceholder": "Message to the speaker",
+    "defaultTitle": "Part",
+    "title": "Part title",
+    "minutes": "Minutes",
+    "arm": "Arm",
+    "start": "Start",
+    "pause": "Pause",
+    "finish": "Finish",
+    "viewHint": "Arm a part, then Start. Finishing does not open media."
   },
   "media": {
     "thisWeek": "This week",
@@ -75,6 +83,11 @@
     "audienceMonitor": "Audience display",
     "speakerMonitor": "Speaker display",
     "useSpeaker": "Use speaker monitor",
+    "speakerMode": "Speaker mode",
+    "speakerMirror": "Mirror + HUD",
+    "speakerHudOnly": "HUD only",
+    "consoleDisplay": "console",
+    "primaryDisplay": "primary",
     "identify": "Identify displays",
     "theme": "Theme",
     "themeSystem": "System",
@@ -84,7 +97,7 @@
     "density": "Density",
     "densityCompact": "Compact",
     "densityComfortable": "Comfortable",
-    "previewMonitor": "Preview window (single display)",
+    "previewMonitor": "Preview window",
     "close": "Close",
     "noMonitors": "No displays reported"
   },
@@ -100,7 +113,7 @@
   "views": {
     "placeholder": "This tab is a placeholder. Domain features arrive in later OpenSpec changes.",
     "songsBody": "Meeting songs and hymnal slots will appear here.",
-    "timerBody": "The assignment timer will appear here.",
+    "timerBody": "Arm a part from this tab or the right panel.",
     "mediaBody": "Weekly media will appear here.",
     "bibleBody": "Bible lookup will appear here.",
     "browserBody": "The embedded browser will appear here.",
@@ -120,6 +133,8 @@
     "lastProfile": "The last profile cannot be deleted.",
     "unknownContentLanguage": "That content language is not in the seed list.",
     "monitorMissing": "The speaker display is not available. A preview window was opened instead.",
+    "clockNotArmed": "Arm a part before starting the clock.",
+    "clockNotRunning": "The clock is not running.",
     "confirmDelete": "Delete this profile? This cannot be undone."
   },
   "common": {

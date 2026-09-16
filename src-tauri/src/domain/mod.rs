@@ -12,12 +12,19 @@ pub mod platform;
 pub mod profile;
 pub mod schedule;
 
-pub use clock::{ClockSnapshot, ClockState, MeetingClock};
+pub use clock::{
+    clock_hue, warn_threshold_ms, AssignmentClock, ClockArmDto, ClockHue, ClockSnapshot,
+    ClockState, MeetingClock,
+};
 pub use content::{content_languages, validate_content_locale, ContentLanguageDto};
 pub use media::{MediaProvider, ProviderRegistry};
-pub use output::{OutputPort, OutputState, StageKind, StageSnapshot, OUTPUT_CHANGED, TIMER_CHANGED};
+pub use output::{
+    OutputPort, OutputState, SpeakerUiDto, StageKind, StageSnapshot, OUTPUT_CHANGED,
+    SPEAKER_UI_CHANGED, TIMER_CHANGED,
+};
 pub use platform::{
-    speaker_placement, MonitorDto, PlatformSurface, SpeakerPlacement, SurfacesSetting,
+    audience_placement, speaker_placement, AudiencePlacement, MonitorDto, PlatformSurface,
+    SpeakerMode, SpeakerPlacement, SurfacesSetting,
 };
 pub use profile::{
     validate_appearance, validate_profile_name, AppearanceSetting, CreateProfileDto,

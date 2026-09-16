@@ -13,7 +13,11 @@ commands.allow = [
   "settings_set",
   "monitors_list",
   "monitors_identify",
-  "output_get"
+  "output_get",
+  "clock_arm",
+  "clock_start",
+  "clock_pause",
+  "clock_finish"
 ]
 
 [[permission]]

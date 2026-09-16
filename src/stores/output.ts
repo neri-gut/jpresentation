@@ -3,26 +3,33 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 import { invokeCommand, isTauri } from "@/composables/invoke";
-import type { OutputBundleDto, StageSnapshot } from "@/types/dto";
+import type { OutputBundleDto, SpeakerMode, SpeakerUiDto, StageSnapshot } from "@/types/dto";
 
 const OUTPUT_CHANGED = "output://changed";
+const SPEAKER_UI_CHANGED = "speaker://ui";
 
 /**
  * Audience stage cache. Rust owns the snapshot; this store only paints the last event.
  */
 export const useOutputStore = defineStore("output", () => {
   const stage = ref<StageSnapshot>({ rev: 0, kind: "none" });
-  let unlisten: UnlistenFn | undefined;
+  const speakerMode = ref<SpeakerMode>("mirror");
+  let unlistenOutput: UnlistenFn | undefined;
+  let unlistenSpeaker: UnlistenFn | undefined;
 
-  /** Fetches the current snapshot and subscribes to `output://changed`. */
+  /** Fetches the current snapshot and subscribes to stage / speaker-ui events. */
   async function subscribe(): Promise<void> {
     if (!isTauri()) {
       return;
     }
     const bundle = await invokeCommand<OutputBundleDto>("output_get");
     apply(bundle.stage);
-    unlisten = await listen<StageSnapshot>(OUTPUT_CHANGED, (event) => {
+    speakerMode.value = bundle.speaker_mode;
+    unlistenOutput = await listen<StageSnapshot>(OUTPUT_CHANGED, (event) => {
       apply(event.payload);
+    });
+    unlistenSpeaker = await listen<SpeakerUiDto>(SPEAKER_UI_CHANGED, (event) => {
+      speakerMode.value = event.payload.mode;
     });
   }
 
@@ -34,13 +41,17 @@ export const useOutputStore = defineStore("output", () => {
     stage.value = next;
   }
 
-  /** Drops the Tauri listener. */
+  /** Drops the Tauri listeners. */
   function dispose(): void {
-    if (unlisten) {
-      void unlisten();
-      unlisten = undefined;
+    if (unlistenOutput) {
+      void unlistenOutput();
+      unlistenOutput = undefined;
+    }
+    if (unlistenSpeaker) {
+      void unlistenSpeaker();
+      unlistenSpeaker = undefined;
     }
   }
 
-  return { stage, subscribe, apply, dispose };
+  return { stage, speakerMode, subscribe, apply, dispose };
 });
