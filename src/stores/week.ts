@@ -4,6 +4,13 @@ import { ref } from "vue";
 
 import { invokeCommand, isTauri } from "@/composables/invoke";
 import type {
+  ApplyTemplateDto,
+  EventTemplateDto,
+  MeetingKind,
+  MeetingPart,
+  SaveTemplateDto,
+  SetPartsDto,
+  TemplateIdDto,
   WeekBundleDto,
   WeekPreviewDto,
   WeekPreviewRequestDto,
@@ -23,6 +30,7 @@ function emptyWeek(kind: "midweek" | "weekend"): WeekBundleDto["midweek"] {
     pub_symbol: kind === "midweek" ? "mwb" : "w",
     issue: "",
     parts: [],
+    media: [],
   };
 }
 
@@ -39,6 +47,7 @@ export const useWeekStore = defineStore("week", () => {
   });
   const progress = ref<WeekProgressDto | null>(null);
   const busy = ref(false);
+  const templates = ref<EventTemplateDto[]>([]);
   let unlisten: UnlistenFn | undefined;
 
   /** Loads persisted weeks and listens for progress events. */
@@ -47,6 +56,7 @@ export const useWeekStore = defineStore("week", () => {
       return;
     }
     await reload();
+    await loadTemplates();
     if (!unlisten) {
       unlisten = await listen<WeekProgressDto>(WEEK_PROGRESS, (event) => {
         progress.value = event.payload;
@@ -104,6 +114,53 @@ export const useWeekStore = defineStore("week", () => {
     await invokeCommand("week_cancel");
   }
 
+  /** Re-parses cached JWPUB (or the system skeleton) without the catalog. */
+  async function restore(): Promise<void> {
+    const payload: WeekScopeDto = { which: which.value };
+    bundle.value = await invokeCommand<WeekBundleDto, WeekScopeDto>("week_restore", payload);
+  }
+
+  /** Replaces the part list of one meeting. */
+  async function setParts(meeting: MeetingKind, parts: MeetingPart[]): Promise<void> {
+    const payload: SetPartsDto = { which: which.value, meeting, parts };
+    bundle.value = await invokeCommand<WeekBundleDto, SetPartsDto>("week_set_parts", payload);
+  }
+
+  async function loadTemplates(): Promise<void> {
+    if (!isTauri()) {
+      return;
+    }
+    templates.value = await invokeCommand<EventTemplateDto[]>("template_list");
+  }
+
+  async function applyTemplate(meeting: MeetingKind, templateId: string): Promise<void> {
+    const payload: ApplyTemplateDto = {
+      which: which.value,
+      meeting,
+      template_id: templateId,
+    };
+    bundle.value = await invokeCommand<WeekBundleDto, ApplyTemplateDto>(
+      "template_apply",
+      payload,
+    );
+  }
+
+  async function saveTemplate(
+    name: string,
+    kind: SaveTemplateDto["kind"],
+    parts: MeetingPart[],
+  ): Promise<void> {
+    const payload: SaveTemplateDto = { name, kind, parts };
+    await invokeCommand<EventTemplateDto, SaveTemplateDto>("template_save", payload);
+    await loadTemplates();
+  }
+
+  async function deleteTemplate(id: string): Promise<void> {
+    const payload: TemplateIdDto = { id };
+    await invokeCommand<void, TemplateIdDto>("template_delete", payload);
+    await loadTemplates();
+  }
+
   /** Image preview as a data URL. Video/song return null. */
   async function preview(itemId: string): Promise<WeekPreviewDto | null> {
     const payload: WeekPreviewRequestDto = { which: which.value, item_id: itemId };
@@ -118,12 +175,19 @@ export const useWeekStore = defineStore("week", () => {
     bundle,
     progress,
     busy,
+    templates,
     hydrate,
     reload,
     setWhich,
     fetchWeek,
     downloadMedia,
     cancel,
+    restore,
+    setParts,
+    loadTemplates,
+    applyTemplate,
+    saveTemplate,
+    deleteTemplate,
     preview,
   };
 });

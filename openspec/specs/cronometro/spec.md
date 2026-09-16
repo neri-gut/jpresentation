@@ -9,7 +9,7 @@ Mostrar los horarios de la guía de actividades de **ese día/semana**, correrlo
 ### Requirement: Una parte suelta sin guía
 Hasta que un `MeetingWeek` esté cargado, el operador SHALL poder armar **una** parte (título 1–80, minutos 1–180), iniciarla, pausarla y terminarla. El tick MUST vivir en Rust (~4 Hz). Vue MUST NOT ser dueña de un `setInterval` de cuenta. Esos gestos MUST NOT abrir ni cerrar medios.
 
-Pausar SHALL dejar la parte `armed` con el transcurrido. Terminar SHALL pasar a `idle` (no arma la siguiente mientras no haya cadena). A 0:00 la misma parte sigue y el desfase crece.
+Pausar SHALL dejar la parte `armed` con el transcurrido. Si hay una guía cargada, Terminar SHALL armar la **siguiente** parte (sin iniciar la cuenta). Si no hay siguiente, pasa a `idle`. A 0:00 la misma parte sigue y el desfase crece.
 
 #### Scenario: Tesoro de 10 minutos
 - GIVEN el reloj idle

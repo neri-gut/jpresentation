@@ -12,9 +12,10 @@ use crate::domain::jwpub::{parse_jwpub, week_covering};
 use crate::domain::media::{
     catalog_key_for_item, CatalogFormat, CatalogKey, MediaResolver, PublicationCatalog,
 };
+use crate::domain::template::{apply_template, ensure_outline, system_template, EventTemplate};
 use crate::domain::week::{
     monday_for, mwb_issue_candidates, should_fetch_to_week, w_issue, week_dir, CivilDate,
-    MediaStatus, MeetingKind, MeetingWeek, WeekWhich,
+    MediaStatus, MeetingKind, MeetingPart, MeetingWeek, WeekWhich,
 };
 use crate::error::AppError;
 
@@ -154,27 +155,29 @@ where
     let monday = CivilDate::parse_iso(&bundle.monday)?;
     let vid_dir = week_dir(media_root, &bundle.langwritten, monday).join("vid");
     fs::create_dir_all(&vid_dir).map_err(|e| AppError::Io(e.to_string()))?;
-    let mut jobs: Vec<(bool, usize, usize)> = Vec::new();
-    collect_jobs(&bundle.midweek, true, &mut jobs);
-    collect_jobs(&bundle.weekend, false, &mut jobs);
-    let total = jobs.len() as u32;
-    for (index, (midweek, part_idx, item_idx)) in jobs.iter().enumerate() {
+    let pending: Vec<String> = {
+        let mut ids = Vec::new();
+        collect_pending_ids(&bundle.midweek, &mut ids);
+        collect_pending_ids(&bundle.weekend, &mut ids);
+        ids
+    };
+    let total = pending.len() as u32;
+    let lang = bundle.langwritten.clone();
+    for (index, id) in pending.iter().enumerate() {
         if cancel.load(Ordering::SeqCst) {
             return Err(AppError::Cancelled);
         }
-        let week = if *midweek {
-            &mut bundle.midweek
-        } else {
-            &mut bundle.weekend
+        let item = find_item_mut(bundle, id);
+        let Some(item) = item else {
+            continue;
         };
-        let item = &mut week.parts[*part_idx].items[*item_idx];
         progress(WeekProgressDto {
             phase: "download".into(),
             done: index as u32,
             total,
             label: item.title.clone(),
         });
-        match download_one(catalog, item, &bundle.langwritten, &vid_dir) {
+        match download_one(catalog, item, &lang, &vid_dir) {
             Ok(()) => {}
             Err(AppError::Cancelled) => return Err(AppError::Cancelled),
             Err(_) => item.status = MediaStatus::Failed,
@@ -189,14 +192,36 @@ where
     Ok(bundle.clone())
 }
 
-fn collect_jobs(week: &MeetingWeek, midweek: bool, jobs: &mut Vec<(bool, usize, usize)>) {
-    for (part_idx, part) in week.parts.iter().enumerate() {
-        for (item_idx, item) in part.items.iter().enumerate() {
+fn collect_pending_ids(week: &MeetingWeek, ids: &mut Vec<String>) {
+    for part in &week.parts {
+        for item in &part.items {
             if should_fetch_to_week(item) {
-                jobs.push((midweek, part_idx, item_idx));
+                ids.push(item.id.clone());
             }
         }
     }
+    for item in &week.media {
+        if should_fetch_to_week(item) {
+            ids.push(item.id.clone());
+        }
+    }
+}
+
+fn find_item_mut<'a>(
+    bundle: &'a mut WeekBundleDto,
+    id: &str,
+) -> Option<&'a mut crate::domain::week::MediaItem> {
+    for week in [&mut bundle.midweek, &mut bundle.weekend] {
+        for part in &mut week.parts {
+            if let Some(item) = part.items.iter_mut().find(|item| item.id == id) {
+                return Some(item);
+            }
+        }
+        if let Some(item) = week.media.iter_mut().find(|item| item.id == id) {
+            return Some(item);
+        }
+    }
+    None
 }
 
 fn download_one<C>(
@@ -272,6 +297,7 @@ where
                 let mut empty = MeetingWeek::empty(monday, kind, langwritten);
                 empty.issue = issue.clone();
                 empty.title = parsed.symbol;
+                ensure_outline(&mut empty);
                 return Ok(empty);
             }
             Err(AppError::CatalogNotFound) => {
@@ -307,6 +333,103 @@ where
     }
     fs::write(dest, &bytes).map_err(|e| AppError::Io(e.to_string()))?;
     Ok(bytes)
+}
+
+/// Applies a template to one meeting of a loaded bundle and persists via the caller.
+pub fn apply_template_to_bundle(
+    bundle: &mut WeekBundleDto,
+    meeting: MeetingKind,
+    template: &EventTemplate,
+) {
+    match meeting {
+        MeetingKind::Midweek => apply_template(&mut bundle.midweek, template),
+        MeetingKind::Weekend => apply_template(&mut bundle.weekend, template),
+    }
+}
+
+/// Replaces the part list of one meeting after validation.
+pub fn set_bundle_parts(
+    bundle: &mut WeekBundleDto,
+    meeting: MeetingKind,
+    parts: Vec<MeetingPart>,
+) -> Result<(), AppError> {
+    crate::domain::template::validate_parts(&parts)?;
+    match meeting {
+        MeetingKind::Midweek => bundle.midweek.parts = parts,
+        MeetingKind::Weekend => bundle.weekend.parts = parts,
+    }
+    Ok(())
+}
+
+/// Re-parses cached `mwb`/`w` JWPUB files without hitting the catalog.
+pub fn restore_from_cache(
+    media_root: &Path,
+    langwritten: &str,
+    which: WeekWhich,
+    today: CivilDate,
+) -> Result<WeekBundleDto, AppError> {
+    let monday = monday_for(which, today);
+    let dir = week_dir(media_root, langwritten, monday);
+    let midweek = parse_cached_pub(&dir, langwritten, monday, MeetingKind::Midweek);
+    let weekend = parse_cached_pub(&dir, langwritten, monday, MeetingKind::Weekend);
+    Ok(WeekBundleDto {
+        monday: monday.to_iso(),
+        langwritten: langwritten.to_string(),
+        midweek,
+        weekend,
+    })
+}
+
+fn parse_cached_pub(
+    dir: &Path,
+    langwritten: &str,
+    monday: CivilDate,
+    kind: MeetingKind,
+) -> MeetingWeek {
+    let symbol = match kind {
+        MeetingKind::Midweek => "mwb",
+        MeetingKind::Weekend => "w",
+    };
+    let path = dir.join("pub").join(format!("{symbol}.jwpub"));
+    let Ok(bytes) = fs::read(&path) else {
+        let mut empty = MeetingWeek::empty(monday, kind, langwritten);
+        ensure_outline(&mut empty);
+        return empty;
+    };
+    match parse_jwpub(&bytes, kind, langwritten, &dir.join("img")) {
+        Ok(parsed) => {
+            if let Some(week) = week_covering(&parsed, monday) {
+                let mut week = week.clone();
+                week.monday = monday.to_iso();
+                week.langwritten = langwritten.to_string();
+                ensure_outline(&mut week);
+                week
+            } else {
+                let mut empty = MeetingWeek::empty(monday, kind, langwritten);
+                empty.title = parsed.symbol;
+                ensure_outline(&mut empty);
+                empty
+            }
+        }
+        Err(_) => {
+            let mut empty = MeetingWeek::empty(monday, kind, langwritten);
+            ensure_outline(&mut empty);
+            empty
+        }
+    }
+}
+
+/// Resolves a system template id.
+pub fn resolve_system_template(id: &str) -> Option<EventTemplate> {
+    system_template(id)
+}
+
+pub fn parse_meeting_kind(raw: &str) -> Result<MeetingKind, AppError> {
+    match raw {
+        "midweek" => Ok(MeetingKind::Midweek),
+        "weekend" => Ok(MeetingKind::Weekend),
+        _ => Err(AppError::Invariant("meeting must be midweek or weekend".into())),
+    }
 }
 
 fn video_path(vid_dir: &Path, key: &CatalogKey) -> PathBuf {
@@ -448,6 +571,7 @@ mod tests {
             .parts
             .iter()
             .flat_map(|p| p.items.iter())
+            .chain(bundle.midweek.media.iter())
             .collect();
         assert!(items.iter().any(|i| {
             matches!(

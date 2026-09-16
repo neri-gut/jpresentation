@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TimerControls from "@/components/TimerControls.vue";
@@ -11,6 +11,7 @@ import { useOutputStore } from "@/stores/output";
 import { useProfileStore } from "@/stores/profile";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
+import { useWeekStore } from "@/stores/week";
 
 const { t } = useI18n();
 const ui = useUiStore();
@@ -18,7 +19,15 @@ const profiles = useProfileStore();
 const timer = useTimerStore();
 const explorer = useExplorerStore();
 const output = useOutputStore();
+const week = useWeekStore();
 const { panel } = storeToRefs(ui);
+
+const outlineParts = computed(() => {
+  if (week.bundle.midweek.parts.length) {
+    return week.bundle.midweek.parts;
+  }
+  return week.bundle.weekend.parts;
+});
 
 const placeholders = [
   { id: "songs", labelKey: "panel.songs" },
@@ -34,6 +43,12 @@ const stageTitle = computed(() => {
     return output.stage.name ?? t("panel.live");
   }
   return explorer.cue?.name ?? t("panel.cueEmpty");
+});
+
+onMounted(() => {
+  void week.hydrate().catch((err) => {
+    ui.showToast(errorMessage(err, t));
+  });
 });
 
 async function toggle(): Promise<void> {
@@ -109,7 +124,7 @@ async function hideScreens(): Promise<void> {
     </section>
     <section class="block timer">
       <h2>{{ t("panel.timer") }}</h2>
-      <TimerControls v-if="!panel.collapsed" />
+      <TimerControls v-if="!panel.collapsed" :parts="outlineParts" />
       <p v-else class="collapsed-time" :data-hue="timer.clock.hue">{{ collapsedTime }}</p>
     </section>
   </aside>

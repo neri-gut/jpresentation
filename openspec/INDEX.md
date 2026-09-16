@@ -2,7 +2,7 @@
 
 Migración de **JMultimedia 2.8.01** (Windows / .NET) a **Tauri 2.11 + Vue 3 + TypeScript + Rust + SQLite**.
 
-Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `035-explorador-rejilla-imagen` (`001`, `029`–`034` cerrados).
+Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `037-contain-plantillas` (`001`, `029`–`036` cerrados).
 
 ## Cómo leer
 
@@ -10,7 +10,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 2. Plataforma: `arquitectura`, `practicas`, `sincronizacion`, `extensibilidad`, `seguridad`, `rendimiento`, `tema`, `cache`, `onboarding`, `licencia-updater`, `fundidos`, `cadena-suministro`, `devcontainer`
 3. Dominios: `canciones`, `audio`, `atajos`, `alertas`, `cronometro`, `programa-semanal`, `multimedia`, `proveedor-medios`, `biblia`, `texto`, `navegador`, `panel`, `perfiles`, `ventanas`
 4. `grabador` — retirado
-5. Changes `001` … `035-explorador-rejilla-imagen`
+5. Changes `001` … `037-contain-plantillas`
 6. Research: `jwpub-mwb-S-202609`, `pub-media-getpubmedialinks`, `biblia-jwpub`, `idiomas`, `json-locales`, `himnario-sjjm`, `plantillas-evento`, `textos-csv`, `huecos`
 
 ## Decisiones
@@ -87,13 +87,15 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 | 033 | Explorador de archivos → stage; outline en cronómetro |
 | 034 | Reabrir stage + árbol de carpetas locales |
 | 035 | Rejilla del explorador + imagen del auditorio sin estirar |
+| 036 | Cover en auditorio + cronómetro de la guía |
+| 037 | Contain a pantalla + plantillas de cronómetro |
 
 ## Implementación (cuando salgamos de specs)
 
 1. `001` scaffold + devcontainer + lockfiles — **hecho**  
 2. Perfiles, i18n, tema, monitores — change `029` — **hecho**  
 3. Superficies + sync + panel — `030` hecho; panel Stage/Audio/Mensajes y sync de vídeo después  
-4. Cronómetro — `031` hecho (una parte suelta + HUD vivo); plantillas + cadena después  
+4. Cronómetro — `031`/`036` hecho; plantillas de usuario + contain `037`  
 5. Adaptador JWPUB + catálogo + cache `week/` — `032` hecho  
 6. Explorador → stage + outline en cronómetro — `033` hecho; reopen + árbol local `034`  
 7. Himnario + cadena de partes + audio  

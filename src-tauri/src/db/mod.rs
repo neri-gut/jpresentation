@@ -3,11 +3,13 @@
 mod migrations;
 mod profile_store;
 mod settings_store;
+mod template_store;
 mod week_store;
 
 pub use migrations::{configure_connection, migrate};
 pub use profile_store::SqliteProfileStore;
 pub use settings_store::{SqliteSettingsStore, KEY_EXPLORER, KEY_SURFACES};
+pub use template_store::SqliteTemplateStore;
 pub use week_store::SqliteWeekStore;
 
 #[cfg(test)]

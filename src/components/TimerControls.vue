@@ -8,6 +8,11 @@ import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
+import type { MeetingPart } from "@/types/dto";
+
+const props = defineProps<{
+  parts?: MeetingPart[];
+}>();
 
 const { t } = useI18n();
 const timer = useTimerStore();
@@ -23,6 +28,17 @@ const canPause = computed(() => clock.value.state === "running");
 const canFinish = computed(
   () => clock.value.state === "armed" || clock.value.state === "running",
 );
+const outline = computed(() => props.parts ?? []);
+const currentIndex = computed(() =>
+  outline.value.findIndex((part) => part.title === clock.value.title),
+);
+const nextPart = computed(() => {
+  const i = currentIndex.value;
+  if (i < 0) {
+    return outline.value[0] ?? null;
+  }
+  return outline.value[i + 1] ?? null;
+});
 
 const heat = computed(() => {
   if (clock.value.remaining_ms < 0 || clock.value.progress_pct >= 100) {
@@ -54,8 +70,20 @@ function pause(): Promise<void> {
   return run(() => timer.pause());
 }
 
-function finish(): Promise<void> {
-  return run(() => timer.finish());
+async function finish(): Promise<void> {
+  const following = nextPart.value;
+  await run(async () => {
+    await timer.finish();
+    if (following) {
+      await timer.arm(following.title, following.minutes && following.minutes > 0 ? following.minutes : 10);
+    }
+  });
+}
+
+function armPart(part: MeetingPart): Promise<void> {
+  title.value = part.title;
+  minutes.value = part.minutes && part.minutes > 0 ? part.minutes : 10;
+  return run(() => timer.arm(title.value, minutes.value));
 }
 </script>
 
@@ -70,7 +98,19 @@ function finish(): Promise<void> {
       :progress-pct="clock.progress_pct"
       :remaining-ms="clock.remaining_ms"
     />
+    <p v-if="nextPart" class="next">{{ t("timer.next") }}: {{ nextPart.title }}</p>
     <div class="row">
+      <button type="button" class="primary" :disabled="!canStart" @click="start">
+        {{ t("timer.start") }}
+      </button>
+      <button type="button" :disabled="!canPause" @click="pause">
+        {{ t("timer.pause") }}
+      </button>
+      <button type="button" :disabled="!canFinish" @click="finish">
+        {{ t("timer.finish") }}
+      </button>
+    </div>
+    <div v-if="outline.length === 0" class="row">
       <input
         v-model="title"
         type="text"
@@ -87,17 +127,20 @@ function finish(): Promise<void> {
       />
       <button type="button" @click="arm">{{ t("timer.arm") }}</button>
     </div>
-    <div class="row">
-      <button type="button" class="primary" :disabled="!canStart" @click="start">
-        {{ t("timer.start") }}
-      </button>
-      <button type="button" :disabled="!canPause" @click="pause">
-        {{ t("timer.pause") }}
-      </button>
-      <button type="button" :disabled="!canFinish" @click="finish">
-        {{ t("timer.finish") }}
-      </button>
-    </div>
+    <ol v-else class="mini">
+      <li v-for="part in outline" :key="part.id">
+        <button
+          type="button"
+          class="mini-part"
+          :data-tone="part.tone ?? 'other'"
+          :class="{ current: part.title === clock.title }"
+          @click="armPart(part)"
+        >
+          <span>{{ part.title }}</span>
+          <span v-if="part.minutes">{{ part.minutes }}</span>
+        </button>
+      </li>
+    </ol>
   </div>
 </template>
 
@@ -115,9 +158,14 @@ function finish(): Promise<void> {
   margin: 0;
 }
 
-.part {
+.part,
+.next {
   font-size: 12px;
   color: var(--jp-muted);
+}
+
+.next {
+  margin: 0;
 }
 
 .time {
@@ -158,5 +206,42 @@ input[type="text"] {
 
 button:disabled {
   opacity: 0.55;
+}
+
+.mini {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.mini-part {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 0.15rem;
+  text-align: start;
+  font-size: 11px;
+}
+
+.mini-part.current {
+  outline: 1px solid var(--jp-accent);
+}
+
+.mini-part[data-tone="treasures"] {
+  color: #1d4ed8;
+}
+
+.mini-part[data-tone="ayf"] {
+  color: #b45309;
+}
+
+.mini-part[data-tone="living"] {
+  color: #9f1239;
+}
+
+.mini-part[data-tone="song"] {
+  color: var(--jp-muted);
 }
 </style>

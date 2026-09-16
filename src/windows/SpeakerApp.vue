@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import ClockBar from "@/components/ClockBar.vue";
 import { clockHeatColor } from "@/composables/clockColor";
 import { formatRemaining } from "@/composables/clockDisplay";
+import { useContainFit } from "@/composables/containFit";
 import { useOutputStore } from "@/stores/output";
 import { useTimerStore } from "@/stores/timer";
 
@@ -45,6 +46,9 @@ const mediaSrc = computed(() => {
   return convertFileSrc(path);
 });
 
+const stillRef = ref<HTMLImageElement | null>(null);
+const { fitStyle, layout } = useContainFit(stillRef);
+
 function onMove(): void {
   cursorVisible.value = true;
   window.clearTimeout(hideTimer);
@@ -74,14 +78,17 @@ onUnmounted(() => {
     <img
       v-if="output.stage.kind === 'image' && mediaSrc"
       :key="`img-${output.stage.rev}`"
-      class="frame"
+      ref="stillRef"
+      class="still"
       :src="mediaSrc"
       alt=""
+      :style="fitStyle"
+      @load="layout"
     />
     <video
       v-else-if="output.stage.kind === 'video' && mediaSrc"
       :key="`vid-${output.stage.rev}`"
-      class="frame"
+      class="motion"
       :src="mediaSrc"
       autoplay
       playsinline
@@ -109,12 +116,23 @@ onUnmounted(() => {
   position: relative;
 }
 
-.frame {
+.still {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  height: auto;
+  z-index: 0;
+}
+
+.motion {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
   z-index: 0;
 }
 

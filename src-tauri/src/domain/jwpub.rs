@@ -9,6 +9,7 @@ use std::path::Path;
 use rusqlite::Connection;
 use zip::ZipArchive;
 
+use crate::domain::template::ensure_outline;
 use crate::domain::week::{
     add_days, normalize_issue_tag, CivilDate, MediaItem, MediaKind, MediaRef, MediaStatus,
     MeetingKind, MeetingPart, MeetingWeek,
@@ -171,7 +172,15 @@ fn parse_sqlite<R: Read + std::io::Seek>(
         let html = document_html(conn, document_id);
         let items = document_media(conn, document_id, langwritten, zip, img_dir)?;
         let parts = parts_from_html(html.as_deref(), &items, document_id);
-        weeks.push(MeetingWeek {
+        let used: Vec<String> = parts
+            .iter()
+            .flat_map(|part| part.items.iter().map(|item| item.id.clone()))
+            .collect();
+        let media: Vec<MediaItem> = items
+            .into_iter()
+            .filter(|item| !used.contains(&item.id))
+            .collect();
+        let mut week = MeetingWeek {
             monday: monday.to_iso(),
             kind,
             title,
@@ -179,7 +188,10 @@ fn parse_sqlite<R: Read + std::io::Seek>(
             pub_symbol: symbol.clone(),
             issue: issue.clone(),
             parts,
-        });
+            media,
+        };
+        ensure_outline(&mut week);
+        weeks.push(week);
     }
     Ok(ParsedPublication { symbol, issue, weeks })
 }
@@ -370,40 +382,157 @@ fn materialise_item<R: Read + std::io::Seek>(
 }
 
 fn parts_from_html(html: Option<&str>, items: &[MediaItem], document_id: i64) -> Vec<MeetingPart> {
-    let mut parts: Vec<MeetingPart> = Vec::new();
+    let mut parts = Vec::new();
     if let Some(html) = html {
-        for track in extract_song_numbers(html) {
-            if let Some(item) = items
-                .iter()
-                .find(|item| matches!(&item.media_ref, MediaRef::Catalog { key_symbol, track: t, .. } if key_symbol == "sjjm" && *t == track))
-            {
+        let mut song_index = 0usize;
+        let songs = extract_song_numbers(html);
+        for (i, line) in block_lines(html).into_iter().enumerate() {
+            if let Some(track) = song_line_track(&line) {
+                let item = items.iter().find(|item| {
+                    matches!(
+                        &item.media_ref,
+                        MediaRef::Catalog { key_symbol, track: t, .. }
+                            if key_symbol.eq_ignore_ascii_case("sjjm") && *t == track
+                    )
+                });
                 parts.push(MeetingPart {
-                    id: format!("{document_id}:song:{track}"),
+                    id: format!("{document_id}:p{i}:song:{track}"),
                     title: format!("Song {track}"),
                     minutes: Some(5),
-                    items: vec![item.clone()],
+                    tone: "song".into(),
+                    items: item.cloned().into_iter().collect(),
+                });
+                song_index += 1;
+                continue;
+            }
+            if let Some(minutes) = extract_minutes(&line) {
+                let title = strip_minutes(&line);
+                if title.len() < 2 || title.len() > 80 {
+                    continue;
+                }
+                parts.push(MeetingPart {
+                    id: format!("{document_id}:p{i}"),
+                    title,
+                    minutes: Some(minutes),
+                    tone: tone_of(&line),
+                    items: Vec::new(),
                 });
             }
         }
-    }
-    let used: Vec<String> = parts
-        .iter()
-        .flat_map(|part| part.items.iter().map(|item| item.id.clone()))
-        .collect();
-    let leftover: Vec<MediaItem> = items
-        .iter()
-        .filter(|item| !used.contains(&item.id))
-        .cloned()
-        .collect();
-    if !leftover.is_empty() || parts.is_empty() {
-        parts.push(MeetingPart {
-            id: format!("{document_id}:media"),
-            title: "Media".into(),
-            minutes: None,
-            items: leftover,
-        });
+        let _ = song_index;
+        let _ = songs;
     }
     parts
+}
+
+fn block_lines(html: &str) -> Vec<String> {
+    let mut s = html.to_string();
+    for tag in [
+        "</h1>", "</h2>", "</h3>", "</h4>", "</p>", "</li>", "</div>", "<br>", "<br/>", "<br />",
+        "</tr>",
+    ] {
+        s = s.replace(tag, "\n");
+        s = s.replace(&tag.to_ascii_uppercase(), "\n");
+    }
+    strip_tags(&s)
+        .lines()
+        .map(collapse_ws)
+        .filter(|line| line.len() > 1)
+        .collect()
+}
+
+fn strip_tags(html: &str) -> String {
+    let mut out = String::with_capacity(html.len());
+    let mut in_tag = false;
+    for c in html.chars() {
+        match c {
+            '<' => in_tag = true,
+            '>' => in_tag = false,
+            _ if !in_tag => out.push(c),
+            _ => {}
+        }
+    }
+    out
+}
+
+fn collapse_ws(line: &str) -> String {
+    line.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+fn extract_minutes(text: &str) -> Option<u32> {
+    let lower = text.to_ascii_lowercase();
+    let bytes = lower.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'(' {
+            i += 1;
+            while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+            let start = i;
+            while i < bytes.len() && bytes[i].is_ascii_digit() {
+                i += 1;
+            }
+            if i > start {
+                let n: u32 = lower[start..i].parse().ok()?;
+                while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+                    i += 1;
+                }
+                let rest = &lower[i..];
+                if rest.starts_with("min") && (1..=180).contains(&n) {
+                    return Some(n);
+                }
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn strip_minutes(text: &str) -> String {
+    let mut s = text.to_string();
+    if let Some(idx) = s.find('(') {
+        let tail = s[idx..].to_ascii_lowercase();
+        if tail.contains("min") {
+            s.truncate(idx);
+        }
+    }
+    s.trim().trim_end_matches(':').trim().to_string()
+}
+
+fn song_line_track(line: &str) -> Option<u32> {
+    let lower = line.to_ascii_lowercase();
+    for key in ["song ", "canción ", "cancion ", "cántico ", "cantico "] {
+        if let Some(idx) = lower.find(key) {
+            let rest = &lower[idx + key.len()..];
+            let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+            if let Ok(n) = digits.parse::<u32>() {
+                if (1..=163).contains(&n) {
+                    return Some(n);
+                }
+            }
+        }
+    }
+    None
+}
+
+fn tone_of(title: &str) -> String {
+    let t = title.to_ascii_lowercase();
+    if t.contains("asign") || t.contains("apply") || t.contains("ministry") || t.contains("student")
+    {
+        "ayf".into()
+    } else if t.contains("vida cristiana")
+        || t.contains("living as")
+        || t.contains("estudio")
+        || t.contains("congregation bible")
+        || t.contains("conclus")
+    {
+        "living".into()
+    } else if t.contains("song") || t.contains("canci") || t.contains("cánt") {
+        "song".into()
+    } else {
+        "treasures".into()
+    }
 }
 
 fn extract_song_numbers(html: &str) -> Vec<u32> {
@@ -502,7 +631,7 @@ fn sample_pub_bytes(with_html: bool) -> Vec<u8> {
         )
         .expect("schema");
         let html = if with_html {
-            b"<html><h1>September 7-13</h1><h3>Song 1</h3><p>Treasures (10 min)</p></html>".as_slice()
+            br#"<html><h1>September 7-13</h1><h3>Song 1</h3><p>Treasures from God's Word (10 min)</p><p>Spiritual Gems (10 min)</p><p>Bible Reading (4 min)</p></html>"#.as_slice()
         } else {
             &[0xff, 0x00, 0xae, 0x11]
         };
@@ -587,7 +716,12 @@ mod tests {
         };
         let week = week_covering(&parsed, monday).expect("week");
         assert_eq!(week.monday, "2026-09-07");
-        let items: Vec<&MediaItem> = week.parts.iter().flat_map(|p| p.items.iter()).collect();
+        let items: Vec<&MediaItem> = week
+            .parts
+            .iter()
+            .flat_map(|p| p.items.iter())
+            .chain(week.media.iter())
+            .collect();
         assert!(items.iter().any(|i| i.status == MediaStatus::Embedded
             && matches!(i.media_ref, MediaRef::Embedded { .. })));
         assert!(items.iter().any(|i| {
@@ -601,6 +735,10 @@ mod tests {
         }));
         assert!(img.join("test.jpg").exists());
         assert!(week.parts.iter().any(|p| p.title.starts_with("Song")));
+        assert!(week.parts.iter().any(|p| p.title.contains("Treasures") && p.minutes == Some(10)));
+        assert!(week.parts.iter().any(|p| p.title.contains("Gems") && p.minutes == Some(10)));
+        assert!(week.parts.iter().any(|p| p.title.contains("Bible Reading") && p.minutes == Some(4)));
+        assert!(!week.parts.iter().any(|p| p.title == "Media"));
     }
 
     #[test]
@@ -610,14 +748,9 @@ mod tests {
         let parsed =
             parse_jwpub(&bytes, MeetingKind::Midweek, "S", &dir.path().join("img")).expect("parse");
         let week = &parsed.weeks[0];
-        assert!(week.parts.iter().any(|p| p.title == "Media"));
-        assert!(
-            week.parts
-                .iter()
-                .flat_map(|p| p.items.iter())
-                .count()
-                > 0
-        );
+        assert!(week.parts.iter().any(|p| p.title.contains("Treasures")));
+        assert!(week.parts.iter().any(|p| p.title == "Song 1"));
+        assert!(!week.parts.iter().any(|p| p.title == "Media"));
     }
 
     #[test]

@@ -56,6 +56,19 @@ DROP TABLE meeting_programs;
 ALTER TABLE meeting_programs_new RENAME TO meeting_programs;
 "#;
 
+const V3: &str = r#"
+CREATE TABLE event_templates (
+    id TEXT PRIMARY KEY,
+    profile_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+);
+"#;
+
 /// WAL + foreign keys. Called before applying versioned SQL.
 pub fn configure_connection(conn: &Connection) -> Result<(), AppError> {
     conn.pragma_update(None, "journal_mode", "WAL")?;
@@ -99,6 +112,14 @@ pub fn migrate(conn: &Connection) -> Result<(), AppError> {
             [],
         )?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
+    }
+
+    if current < 3 {
+        conn.execute_batch(V3)?;
+        conn.execute(
+            "INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'))",
+            [],
+        )?;
     }
 
     seed_default_profile(conn)?;
@@ -158,7 +179,7 @@ mod tests {
                 |row| row.get(0),
             )
             .expect("version");
-        assert_eq!(version, 2);
+        assert_eq!(version, 3);
     }
 
     #[test]

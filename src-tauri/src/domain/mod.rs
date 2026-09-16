@@ -13,6 +13,7 @@ pub mod output;
 pub mod platform;
 pub mod profile;
 pub mod schedule;
+pub mod template;
 pub mod week;
 
 pub use clock::{

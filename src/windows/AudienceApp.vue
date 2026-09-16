@@ -3,6 +3,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useContainFit } from "@/composables/containFit";
 import { useOutputStore } from "@/stores/output";
 
 const { t } = useI18n();
@@ -17,6 +18,9 @@ const mediaSrc = computed(() => {
   }
   return convertFileSrc(path);
 });
+
+const stillRef = ref<HTMLImageElement | null>(null);
+const { fitStyle, layout } = useContainFit(stillRef);
 
 function onMove(): void {
   cursorVisible.value = true;
@@ -44,9 +48,12 @@ onUnmounted(() => {
     <img
       v-if="output.stage.kind === 'image' && mediaSrc"
       :key="`img-${output.stage.rev}`"
+      ref="stillRef"
       class="still"
       :src="mediaSrc"
       :alt="output.stage.name ?? ''"
+      :style="fitStyle"
+      @load="layout"
     />
     <video
       v-else-if="output.stage.kind === 'video' && mediaSrc"
@@ -77,14 +84,12 @@ onUnmounted(() => {
   cursor: default;
 }
 
-/* Do not set width+height 100% on img: WebKitGTK stretches and drops object-fit. */
+/* Contain: JS sets pixel size so the image fills without cropping (WebKitGTK). */
 .still {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 100%;
-  max-height: 100%;
   width: auto;
   height: auto;
 }

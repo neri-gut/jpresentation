@@ -227,6 +227,7 @@ export interface MeetingPart {
   id: string;
   title: string;
   minutes: number | null;
+  tone?: string;
   items: MediaItem[];
 }
 
@@ -238,6 +239,7 @@ export interface MeetingWeek {
   pub_symbol: string;
   issue: string;
   parts: MeetingPart[];
+  media?: MediaItem[];
 }
 
 export interface WeekBundleDto {
@@ -254,6 +256,40 @@ export interface WeekScopeDto {
 export interface WeekPreviewRequestDto {
   which: WeekWhich;
   item_id: string;
+}
+
+export type TemplateSource = "system" | "user";
+export type TemplateKind = "midweek" | "weekend" | "event";
+
+export interface EventTemplateDto {
+  id: string;
+  name: string;
+  source: TemplateSource;
+  kind: TemplateKind;
+  parts: MeetingPart[];
+}
+
+export interface SaveTemplateDto {
+  id?: string | null;
+  name: string;
+  kind: TemplateKind;
+  parts: MeetingPart[];
+}
+
+export interface TemplateIdDto {
+  id: string;
+}
+
+export interface ApplyTemplateDto {
+  which: WeekWhich;
+  meeting: MeetingKind;
+  template_id: string;
+}
+
+export interface SetPartsDto {
+  which: WeekWhich;
+  meeting: MeetingKind;
+  parts: MeetingPart[];
 }
 
 export interface WeekPreviewDto {

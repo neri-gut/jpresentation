@@ -17,10 +17,10 @@ use std::time::Duration;
 use commands::{
     clock_arm, clock_finish, clock_pause, clock_start, content_languages_list, explorer_add_root,
     explorer_list, explorer_open_jwpub, explorer_pick_root, explorer_preview, explorer_remove_root,
-    monitors_identify,
-    monitors_list, output_get, profile_create, profile_delete, profile_duplicate, profile_list,
-    profile_select, profile_update, settings_get, settings_set, stage_close, stage_open,
-    week_cancel, week_download_media, week_fetch, week_get, week_preview,
+    monitors_identify, monitors_list, output_get, profile_create, profile_delete, profile_duplicate,
+    profile_list, profile_select, profile_update, settings_get, settings_set, stage_close,
+    stage_open, template_apply, template_delete, template_list, template_save, week_cancel,
+    week_download_media, week_fetch, week_get, week_preview, week_restore, week_set_parts,
 };
 use db::SqliteSettingsStore;
 use domain::output::{OUTPUT_CHANGED, SPEAKER_UI_CHANGED, TIMER_CHANGED};
@@ -99,6 +99,12 @@ pub fn run() {
             week_download_media,
             week_cancel,
             week_preview,
+            week_restore,
+            week_set_parts,
+            template_list,
+            template_save,
+            template_delete,
+            template_apply,
             explorer_list,
             explorer_add_root,
             explorer_pick_root,

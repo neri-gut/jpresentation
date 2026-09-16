@@ -86,12 +86,20 @@ pub struct MediaItem {
     pub cache_path: Option<String>,
 }
 
-/// One row of the meeting outline (or a fallback «Media» bucket).
+fn default_tone() -> String {
+    "other".into()
+}
+
+/// One row of the meeting outline.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MeetingPart {
     pub id: String,
     pub title: String,
     pub minutes: Option<u32>,
+    /// `treasures` | `ayf` | `living` | `song` | `other`
+    #[serde(default = "default_tone")]
+    pub tone: String,
+    #[serde(default)]
     pub items: Vec<MediaItem>,
 }
 
@@ -105,6 +113,9 @@ pub struct MeetingWeek {
     pub pub_symbol: String,
     pub issue: String,
     pub parts: Vec<MeetingPart>,
+    /// Leftover images/videos not shown as timer rows.
+    #[serde(default)]
+    pub media: Vec<MediaItem>,
 }
 
 impl MeetingWeek {
@@ -128,6 +139,7 @@ impl MeetingWeek {
                 MeetingKind::Weekend => w_issue(monday),
             },
             parts: Vec::new(),
+            media: Vec::new(),
         }
     }
 }
