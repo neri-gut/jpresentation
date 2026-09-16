@@ -17,6 +17,8 @@ El backend mantiene `AppState { db, output: OutputState, providers: ProviderRegi
 ### Decision: Tauri 2.11 estable, no 3.0 alpha
 v3 está en alpha el 2026-09-12. Una app de salón necesita WebView y plugins maduros (fs, dialog, window-state, sql/rusqlite). Se revisará v3 cuando haya estable.
 
+`tauri` (runtime) y `tauri-build` (codegen de `build.rs`) son crates distintos y **no comparten semver**. En 001: `tauri = 2.11.1`, `tauri-build = 2.6.3`. El CLI npm (`@tauri-apps/cli`) puede ir un parche por delante. No pinchar `tauri-build` a 2.11.
+
 ### Decision: rusqlite en Rust, no plugin-sql desde el frontend
 El frontend no escribe SQL. Evita inyección y mantiene migraciones en un solo lugar (`src-tauri/src/db/migrations`).
 

@@ -1,0 +1,85 @@
+# Dependencias y builds
+node_modules/
+dist/
+dist-ssr/
+.output/
+.vite/
+.turbo/
+*.local
+target/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/WixTools/
+
+# Locks opcionales de herramienta (el package-lock y Cargo.lock SÍ se versionan)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+tauri.key
+tauri.priv
+TAURI_SIGNING_PRIVATE_KEY
+
+# Datos y medios de usuario (nunca al git)
+*.jwpub
+*.epub
+*.mp4
+*.webm
+*.mp3
+*.m4a
+app_data/
+cache/
+hymnal/
+bible/
+week/
+thumb/
+local-pub/
+ambient/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Tests / cobertura
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.lcov
+
+# IDE y SO
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# Devcontainer / codespaces locales
+.devcontainer/*.local
+
+# Artefactos de agente / generación
+.grok/
+imagine_images/
+*.tsbuildinfo
+.eslintcache
+
+# Instaladores generados
+*.msi
+*.exe
+*.dmg
+*.app
+*.AppImage
+*.deb
+*.rpm
+bundle/

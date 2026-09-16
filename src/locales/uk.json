@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Неофіційний додаток. Не пов’язаний із Watch Tower."
+  },
+  "nav": {
+    "songs": "Пісні",
+    "timer": "Таймер",
+    "media": "Медіа",
+    "bible": "Біблія",
+    "browser": "Браузер",
+    "text": "Текст"
+  },
+  "panel": {
+    "play": "Відтворити",
+    "next": "Далі",
+    "previous": "Назад",
+    "showText": "Показати текст"
+  },
+  "songs": {
+    "downloadHymnal": "Завантажити збірник",
+    "slotStart": "Початкова",
+    "slotMiddle": "Середня",
+    "slotEnd": "Заключна",
+    "pendingCount": "очікують: {n}"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Повідомлення промовцю"
+  },
+  "media": {
+    "thisWeek": "Цей тиждень",
+    "nextWeek": "Наступний тиждень",
+    "downloadWeek": "Завантажити матеріали тижня"
+  },
+  "bible": {
+    "downloadModule": "Завантажити Біблію",
+    "lookup": "Знайти"
+  },
+  "settings": {
+    "uiLanguage": "Мова програми",
+    "contentLanguage": "Мова матеріалів"
+  }
+}

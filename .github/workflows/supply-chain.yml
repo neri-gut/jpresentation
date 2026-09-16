@@ -1,0 +1,22 @@
+name: supply-chain
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  npm-audit:
+    if: hashFiles('package-lock.json') != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm version
+        run: npm -v
+      - name: ci
+        run: npm ci --ignore-scripts
+      - name: audit runtime
+        run: npm audit --omit=dev --audit-level=high

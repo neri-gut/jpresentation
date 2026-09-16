@@ -1,0 +1,18 @@
+[[permission]]
+identifier = "operator-commands"
+description = "Operator console IPC. Must not be granted to audience or speaker."
+commands.allow = [
+  "profile_list",
+  "profile_create",
+  "profile_select",
+  "profile_update",
+  "settings_get",
+  "settings_set",
+  "monitors_list",
+  "output_get"
+]
+
+[[permission]]
+identifier = "output-read"
+description = "Read-only stage/clock snapshot so a surface can resync without mutating output."
+commands.allow = ["output_get"]

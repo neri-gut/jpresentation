@@ -1,0 +1,24 @@
+{
+  "name": "JPresentation",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "node",
+  "forwardPorts": [1420, 1421],
+  "portsAttributes": {
+    "1420": { "label": "Vite / Tauri dev", "onAutoForward": "notify" },
+    "1421": { "label": "Vite HMR", "onAutoForward": "silent" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "rust-lang.rust-analyzer",
+        "dbaeumer.vscode-eslint",
+        "vadimcn.vscode-lldb",
+        "tauri-apps.tauri-vscode"
+      ]
+    }
+  },
+  "postCreateCommand": "rustc -V && node -v && npm -v"
+}

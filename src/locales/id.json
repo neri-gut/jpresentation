@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Pelengkap tidak resmi. Tidak terafiliasi dengan Watch Tower."
+  },
+  "nav": {
+    "songs": "Nyanyian",
+    "timer": "Pengatur waktu",
+    "media": "Multimedia",
+    "bible": "Alkitab",
+    "browser": "Peramban Web",
+    "text": "Teks"
+  },
+  "panel": {
+    "play": "Putar",
+    "next": "Berikutnya",
+    "previous": "Sebelumnya",
+    "showText": "Tampilkan teks"
+  },
+  "songs": {
+    "downloadHymnal": "Unduh buku nyanyian",
+    "slotStart": "Pembuka",
+    "slotMiddle": "Tengah",
+    "slotEnd": "Penutup",
+    "pendingCount": "{n} tertunda"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Pesan untuk pembicara"
+  },
+  "media": {
+    "thisWeek": "Minggu ini",
+    "nextWeek": "Minggu depan",
+    "downloadWeek": "Unduh media minggu ini"
+  },
+  "bible": {
+    "downloadModule": "Unduh Alkitab",
+    "lookup": "Cari"
+  },
+  "settings": {
+    "uiLanguage": "Bahasa aplikasi",
+    "contentLanguage": "Bahasa konten"
+  }
+}

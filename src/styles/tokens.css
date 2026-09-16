@@ -1,0 +1,44 @@
+:root {
+  --jp-bg: #f3f4f6;
+  --jp-bg-elev: #ffffff;
+  --jp-fg: #1a1d23;
+  --jp-muted: #5c6370;
+  --jp-border: #d5d8de;
+  --jp-accent: #1d4ed8;
+  --jp-accent-fg: #ffffff;
+  --jp-danger: #b42318;
+  --jp-ok: #067647;
+  --jp-warn: #b54708;
+  --jp-shadow: 0 8px 24px rgb(16 18 22 / 12%);
+  --jp-font: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --jp-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --jp-radius: 6px;
+  --jp-gap: 0.4rem;
+  --jp-pad: 0.35rem 0.55rem;
+  --jp-font-size: 13px;
+  --jp-title: 13px;
+  --jp-menubar: 28px;
+  --jp-tabbar: 32px;
+}
+
+:root[data-density="comfortable"] {
+  --jp-pad: 0.5rem 0.75rem;
+  --jp-font-size: 14px;
+  --jp-title: 14px;
+  --jp-menubar: 32px;
+  --jp-tabbar: 36px;
+}
+
+:root[data-theme="dark"] {
+  --jp-bg: #16181d;
+  --jp-bg-elev: #1e2128;
+  --jp-fg: #e8eaef;
+  --jp-muted: #9aa3b2;
+  --jp-border: #2c313c;
+  --jp-accent: #60a5fa;
+  --jp-accent-fg: #0b1220;
+  --jp-danger: #f97066;
+  --jp-ok: #75e0a7;
+  --jp-warn: #fdb022;
+  --jp-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+}

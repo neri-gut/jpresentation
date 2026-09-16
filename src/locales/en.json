@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Unofficial companion. Not affiliated with Watch Tower."
+  },
+  "nav": {
+    "songs": "Songs",
+    "timer": "Timer",
+    "media": "Media",
+    "bible": "Bible",
+    "browser": "Web browser",
+    "text": "Text"
+  },
+  "menu": {
+    "languages": "Languages",
+    "tools": "Tools",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "about": {
+    "title": "About",
+    "stack": "Stack: Tauri 2.11, Vue 3, TypeScript, Rust, SQLite.",
+    "close": "Close"
+  },
+  "panel": {
+    "play": "Play",
+    "next": "Next",
+    "previous": "Previous",
+    "showText": "Show text",
+    "songs": "Songs",
+    "media": "Media",
+    "bible": "Bible",
+    "timer": "Timer",
+    "collapse": "Collapse panel",
+    "expand": "Expand panel",
+    "placeholder": "Available in a later change."
+  },
+  "songs": {
+    "downloadHymnal": "Download songbook",
+    "slotStart": "Opening",
+    "slotMiddle": "Middle",
+    "slotEnd": "Closing",
+    "pendingCount": "{n} pending"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Message to the speaker"
+  },
+  "media": {
+    "thisWeek": "This week",
+    "nextWeek": "Next week",
+    "downloadWeek": "Download this week's media"
+  },
+  "bible": {
+    "downloadModule": "Download Bible",
+    "lookup": "Look up"
+  },
+  "settings": {
+    "uiLanguage": "App language",
+    "contentLanguage": "Content language",
+    "title": "Settings",
+    "profiles": "Profiles",
+    "createProfile": "Create profile",
+    "profileName": "Profile name",
+    "create": "Create",
+    "monitors": "Displays",
+    "audienceMonitor": "Audience display",
+    "speakerMonitor": "Speaker display",
+    "useSpeaker": "Use speaker monitor",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "previewMonitor": "Preview window (single display)",
+    "close": "Close",
+    "noMonitors": "No displays reported"
+  },
+  "views": {
+    "placeholder": "This tab is a placeholder. Domain features arrive in later OpenSpec changes.",
+    "songsBody": "Meeting songs and hymnal slots will appear here.",
+    "timerBody": "The assignment timer will appear here.",
+    "mediaBody": "Weekly media will appear here.",
+    "bibleBody": "Bible lookup will appear here.",
+    "browserBody": "The embedded browser will appear here.",
+    "textBody": "Daily text and year text posters will appear here."
+  },
+  "audience": {
+    "placeholder": "JPresentation"
+  },
+  "speaker": {
+    "partPlaceholder": "No part armed",
+    "timePlaceholder": "00:00"
+  },
+  "errors": {
+    "invokeFailed": "The console could not complete that action.",
+    "busy": "The app is busy. Try again.",
+    "notFound": "Not found."
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel"
+  }
+}

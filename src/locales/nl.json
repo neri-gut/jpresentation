@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "Onofficiële aanvulling. Niet verbonden met Watch Tower."
+  },
+  "nav": {
+    "songs": "Liederen",
+    "timer": "Timer",
+    "media": "Multimedia",
+    "bible": "Bijbel",
+    "browser": "Webbrowser",
+    "text": "Tekst"
+  },
+  "panel": {
+    "play": "Afspelen",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "showText": "Tekst tonen"
+  },
+  "songs": {
+    "downloadHymnal": "Liederenboek downloaden",
+    "slotStart": "Opening",
+    "slotMiddle": "Midden",
+    "slotEnd": "Slot",
+    "pendingCount": "{n} in behandeling"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "Bericht aan de spreker"
+  },
+  "media": {
+    "thisWeek": "Deze week",
+    "nextWeek": "Volgende week",
+    "downloadWeek": "Media van deze week downloaden"
+  },
+  "bible": {
+    "downloadModule": "Bijbel downloaden",
+    "lookup": "Zoeken"
+  },
+  "settings": {
+    "uiLanguage": "App-taal",
+    "contentLanguage": "Taal van de inhoud"
+  }
+}

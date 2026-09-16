@@ -1,0 +1,36 @@
+[package]
+name = "jpresentation"
+version = "0.1.0"
+description = "Meeting operator console with audience and speaker surfaces"
+authors = ["JPresentation contributors"]
+edition = "2021"
+license = "Apache-2.0"
+
+[lib]
+name = "jpresentation_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+# Build-time codegen (context, ACL). Independent semver from the `tauri` runtime crate.
+# With Tauri 2.11.x the matching generator is tauri-build 2.6.x, not 2.11.x.
+tauri-build = { version = "=2.6.3", features = [] }
+
+[dependencies]
+# Runtime crate (webview, commands, plugins). Pin 2.11.x — never 3.0 alpha.
+tauri = { version = "=2.11.1", features = [] }
+tauri-plugin-opener = "=2.5.2"
+serde = { version = "=1.0.219", features = ["derive"] }
+serde_json = "=1.0.140"
+thiserror = "=2.0.12"
+rusqlite = { version = "=0.32.1", features = ["bundled"] }
+uuid = { version = "=1.16.0", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "=3.19.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

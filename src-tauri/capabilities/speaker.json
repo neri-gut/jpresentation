@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "speaker-cap",
+  "description": "Speaker surface: render and HUD events only. No input, no fs.",
+  "windows": ["speaker"],
+  "permissions": [
+    "core:event:default",
+    "core:app:default",
+    "output-read"
+  ]
+}

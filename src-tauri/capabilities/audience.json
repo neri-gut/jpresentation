@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "audience-cap",
+  "description": "Audience surface: render and listen only. No fs write, no profile mutation.",
+  "windows": ["audience"],
+  "permissions": [
+    "core:event:default",
+    "core:app:default",
+    "output-read"
+  ]
+}

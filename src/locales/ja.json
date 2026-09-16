@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "JPresentation",
+    "aboutUnofficial": "非公式の補助アプリです。ものみの塔協会とは関係ありません。"
+  },
+  "nav": {
+    "songs": "歌",
+    "timer": "タイマー",
+    "media": "メディア",
+    "bible": "聖書",
+    "browser": "ウェブブラウザ",
+    "text": "テキスト"
+  },
+  "panel": {
+    "play": "再生",
+    "next": "次へ",
+    "previous": "前へ",
+    "showText": "テキストを表示"
+  },
+  "songs": {
+    "downloadHymnal": "歌集をダウンロード",
+    "slotStart": "開始",
+    "slotMiddle": "中間",
+    "slotEnd": "終わり",
+    "pendingCount": "未ダウンロード {n}"
+  },
+  "timer": {
+    "overtime": "+{time}",
+    "messagePlaceholder": "発言者へのメッセージ"
+  },
+  "media": {
+    "thisWeek": "今週",
+    "nextWeek": "来週",
+    "downloadWeek": "今週のメディアをダウンロード"
+  },
+  "bible": {
+    "downloadModule": "聖書をダウンロード",
+    "lookup": "検索"
+  },
+  "settings": {
+    "uiLanguage": "アプリの言語",
+    "contentLanguage": "コンテンツの言語"
+  }
+}
