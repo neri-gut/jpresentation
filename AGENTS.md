@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual de código es `034-stage-reopen-arbol-local`. `001` y `029`–`033` están cerrados.
+No implementes nada que no esté en un change abierto. El change actual de código es `035-explorador-rejilla-imagen`. `001` y `029`–`034` están cerrados.
 
-## Change 034 (hacer ahora)
+## Change 035 (hacer ahora)
 
-Stage: cada Show usa un fichero nuevo; Cerrar suelta el webview. Árbol Multimedia: Home/Desktop + subcarpetas + diálogo nativo para añadir raíz. Sin tocar el degradado del cronómetro.
+Explorador Multimedia en rejilla de miniaturas (carpetas + medios, migas, filtro). Imagen en auditorio sin deformar (letterbox). Sin cronómetro.
 
 ## Prohibido
 

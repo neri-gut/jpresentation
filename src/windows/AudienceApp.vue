@@ -44,14 +44,14 @@ onUnmounted(() => {
     <img
       v-if="output.stage.kind === 'image' && mediaSrc"
       :key="`img-${output.stage.rev}`"
-      class="frame"
+      class="still"
       :src="mediaSrc"
       :alt="output.stage.name ?? ''"
     />
     <video
       v-else-if="output.stage.kind === 'video' && mediaSrc"
       :key="`vid-${output.stage.rev}`"
-      class="frame"
+      class="motion"
       :src="mediaSrc"
       autoplay
       playsinline
@@ -62,12 +62,13 @@ onUnmounted(() => {
 
 <style scoped>
 .audience {
+  position: relative;
+  width: 100%;
   height: 100%;
+  overflow: hidden;
   margin: 0;
   background: #000;
   color: #d0d0d0;
-  display: grid;
-  place-items: center;
   cursor: none;
   user-select: none;
 }
@@ -76,15 +77,33 @@ onUnmounted(() => {
   cursor: default;
 }
 
-.frame {
+/* Do not set width+height 100% on img: WebKitGTK stretches and drops object-fit. */
+.still {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.motion {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
   background: #000;
 }
 
 .mark {
   margin: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
   font-size: 2rem;
   letter-spacing: 0.08em;
   opacity: 0.55;

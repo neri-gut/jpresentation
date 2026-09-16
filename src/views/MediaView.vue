@@ -13,12 +13,60 @@ const explorer = useExplorerStore();
 const week = useWeekStore();
 const ui = useUiStore();
 
-const addPath = ref("");
-
-const videos = computed(() => explorer.files.filter((item) => item.kind === "video"));
-const images = computed(() => explorer.files.filter((item) => item.kind === "image"));
-const pubs = computed(() => explorer.files.filter((item) => item.kind === "jwpub"));
+const filter = ref("");
 const selectedPath = computed(() => explorer.cue?.path ?? null);
+
+const sep = computed(() =>
+  explorer.listing.path.includes("\\") && !explorer.listing.path.startsWith("/") ? "\\" : "/",
+);
+
+const crumbs = computed(() => {
+  const path = explorer.listing.path;
+  const items: { name: string; path: string }[] = [{ name: t("media.places"), path: "" }];
+  if (!path) {
+    return items;
+  }
+  const root = explorer.roots.find(
+    (r) => path === r.path || path.startsWith(r.path + sep.value),
+  );
+  if (!root) {
+    items.push({ name: path, path });
+    return items;
+  }
+  items.push({ name: root.name, path: root.path });
+  if (path === root.path) {
+    return items;
+  }
+  const rest = path.slice(root.path.length).split(/[/\\]/).filter(Boolean);
+  let acc = root.path;
+  for (const part of rest) {
+    acc = acc.endsWith(sep.value) ? acc + part : acc + sep.value + part;
+    items.push({ name: part, path: acc });
+  }
+  return items;
+});
+
+const folders = computed(() =>
+  explorer.dirs.filter((item) => matches(item.name)),
+);
+const videos = computed(() =>
+  explorer.files.filter((item) => item.kind === "video" && matches(item.name)),
+);
+const images = computed(() =>
+  explorer.files.filter((item) => item.kind === "image" && matches(item.name)),
+);
+const pubs = computed(() =>
+  explorer.files.filter((item) => item.kind === "jwpub" && matches(item.name)),
+);
+const empty = computed(
+  () =>
+    folders.value.length + videos.value.length + images.value.length + pubs.value.length === 0,
+);
+
+function matches(name: string): boolean {
+  const q = filter.value.trim().toLowerCase();
+  return !q || name.toLowerCase().includes(q);
+}
 
 onMounted(async () => {
   await run(async () => {
@@ -36,31 +84,21 @@ async function run(action: () => Promise<void>): Promise<void> {
 }
 
 function openFolder(path: string): Promise<void> {
+  filter.value = "";
   return run(() => explorer.list(path));
 }
 
-async function onFileClick(entry: ExplorerEntryDto): Promise<void> {
+async function onTileClick(entry: ExplorerEntryDto): Promise<void> {
+  if (entry.kind === "dir") {
+    await openFolder(entry.path);
+    return;
+  }
   if (entry.kind === "jwpub") {
     await run(() => explorer.openJwpub(entry.path));
     return;
   }
   await run(() => explorer.cueFile(entry));
 }
-
-function addFolder(): Promise<void> {
-  const path = addPath.value.trim();
-  if (!path) {
-    return Promise.resolve();
-  }
-  return run(async () => {
-    await explorer.addRoot(path);
-    addPath.value = "";
-    await explorer.loadRoots();
-    await explorer.list("");
-  });
-}
-
-
 </script>
 
 <template>
@@ -69,99 +107,100 @@ function addFolder(): Promise<void> {
       <button type="button" :disabled="!explorer.listing.path" @click="openFolder(explorer.listing.parent ?? '')">
         {{ t("media.up") }}
       </button>
-      <p class="crumb">{{ explorer.listing.path || t("media.roots") }}</p>
-      <button type="button" :disabled="week.busy" @click="run(async () => { await week.downloadMedia(); if (explorer.listing.path) await explorer.list(explorer.listing.path); })">
+      <nav class="crumbs" :aria-label="t('media.roots')">
+        <button
+          v-for="(crumb, index) in crumbs"
+          :key="crumb.path + index"
+          type="button"
+          class="crumb"
+          :disabled="index === crumbs.length - 1 && !!explorer.listing.path"
+          @click="openFolder(crumb.path)"
+        >
+          {{ crumb.name }}
+        </button>
+      </nav>
+      <input
+        v-model="filter"
+        type="search"
+        class="filter"
+        :placeholder="t('media.filter')"
+        :aria-label="t('media.filter')"
+      />
+      <button type="button" @click="run(() => explorer.pickRoot())">{{ t("media.addFolder") }}</button>
+      <button
+        type="button"
+        :disabled="week.busy"
+        @click="run(async () => { await week.downloadMedia(); if (explorer.listing.path) await explorer.list(explorer.listing.path); })"
+      >
         {{ t("media.downloadWeek") }}
       </button>
     </header>
-    <div class="add">
-      <button type="button" @click="run(() => explorer.pickRoot())">{{ t("media.addFolder") }}</button>
-      <input v-model="addPath" type="text" :placeholder="t('media.addFolderHint')" />
-      <button type="button" @click="addFolder">{{ t("media.addPath") }}</button>
-    </div>
     <div class="body">
-      <nav class="tree" :aria-label="t('media.roots')">
+      <nav class="tree" :aria-label="t('media.places')">
         <p class="tree-label">{{ t("media.places") }}</p>
         <button
           v-for="root in explorer.roots"
           :key="root.path"
           type="button"
           class="tree-item"
-          :class="{ active: explorer.listing.path === root.path }"
+          :class="{ active: explorer.listing.path === root.path || explorer.listing.path.startsWith(root.path + sep) }"
           @click="openFolder(root.path)"
         >
           {{ root.name }}
         </button>
-        <template v-if="explorer.dirs.length">
-          <p class="tree-label">{{ t("media.folders") }}</p>
-          <button
-            v-for="dir in explorer.dirs"
-            :key="dir.path"
-            type="button"
-            class="tree-item nested"
-            :class="{ active: explorer.listing.path === dir.path }"
-            @click="openFolder(dir.path)"
-          >
-            {{ dir.name }}
-          </button>
-        </template>
       </nav>
-      <div class="grid">
-        <p v-if="explorer.files.length === 0" class="empty">{{ t("media.cueHint") }}</p>
-        <section v-if="videos.length" class="group">
-          <h2>{{ t("media.videos") }}</h2>
-          <div class="cards">
-            <button
-              v-for="entry in videos"
-              :key="entry.path"
-              type="button"
-              class="card video"
-              :class="{ selected: selectedPath === entry.path }"
-              @click="onFileClick(entry)"
-            >
-              <span class="thumb video-thumb">▶</span>
-              <span class="meta">
-                <strong>{{ entry.name }}</strong>
-              </span>
-            </button>
-          </div>
-        </section>
-        <section v-if="images.length" class="group">
-          <h2>{{ t("media.images") }}</h2>
-          <div class="cards">
-            <button
-              v-for="entry in images"
-              :key="entry.path"
-              type="button"
-              class="card"
-              :class="{ selected: selectedPath === entry.path }"
-              @click="onFileClick(entry)"
-            >
-              <img
-                v-if="explorer.thumbs[entry.path]"
-                class="thumb"
-                :src="explorer.thumbs[entry.path]"
-                alt=""
-              />
-              <span v-else class="thumb" />
-              <span class="meta">
-                <strong>{{ entry.name }}</strong>
-              </span>
-            </button>
-          </div>
-        </section>
-        <section v-if="pubs.length" class="group">
-          <h2>{{ t("media.kind.jwpub") }}</h2>
+      <div class="grid-wrap">
+        <p v-if="empty" class="empty">{{ t("media.cueHint") }}</p>
+        <div v-else class="grid">
+          <button
+            v-for="entry in folders"
+            :key="entry.path"
+            type="button"
+            class="tile folder"
+            @click="onTileClick(entry)"
+          >
+            <span class="thumb folder-thumb">{{ t("media.kind.dir") }}</span>
+            <span class="cap">{{ entry.name }}</span>
+          </button>
+          <button
+            v-for="entry in videos"
+            :key="entry.path"
+            type="button"
+            class="tile"
+            :class="{ selected: selectedPath === entry.path }"
+            @click="onTileClick(entry)"
+          >
+            <span class="thumb video-thumb">▶</span>
+            <span class="cap">{{ entry.name }}</span>
+          </button>
+          <button
+            v-for="entry in images"
+            :key="entry.path"
+            type="button"
+            class="tile"
+            :class="{ selected: selectedPath === entry.path }"
+            @click="onTileClick(entry)"
+          >
+            <img
+              v-if="explorer.thumbs[entry.path]"
+              class="thumb"
+              :src="explorer.thumbs[entry.path]"
+              alt=""
+            />
+            <span v-else class="thumb" />
+            <span class="cap">{{ entry.name }}</span>
+          </button>
           <button
             v-for="entry in pubs"
             :key="entry.path"
             type="button"
-            class="pub"
-            @click="onFileClick(entry)"
+            class="tile"
+            @click="onTileClick(entry)"
           >
-            {{ entry.name }}
+            <span class="thumb pub-thumb">{{ t("media.kind.jwpub") }}</span>
+            <span class="cap">{{ entry.name }}</span>
           </button>
-        </section>
+        </div>
       </div>
     </div>
   </section>
@@ -176,23 +215,49 @@ function addFolder(): Promise<void> {
   min-height: 0;
 }
 
-.toolbar,
-.add {
+.toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   align-items: center;
 }
 
-.crumb {
-  margin: 0;
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
   flex: 1;
-  min-width: 8rem;
-  font-size: 12px;
+  min-width: 10rem;
+  align-items: center;
+}
+
+.crumb {
+  border: 0;
+  background: transparent;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  color: var(--jp-accent);
+}
+
+.crumb:disabled {
+  color: var(--jp-fg);
+  opacity: 1;
+  font-weight: 650;
+}
+
+.crumb:not(:disabled):hover {
+  background: color-mix(in srgb, var(--jp-accent) 12%, transparent);
+}
+
+.crumb:not(:last-child)::after {
+  content: "/";
+  margin-left: 0.25rem;
   color: var(--jp-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 400;
+}
+
+.filter {
+  width: 11rem;
 }
 
 button,
@@ -203,9 +268,8 @@ input {
   padding: var(--jp-pad);
 }
 
-input {
-  flex: 1;
-  min-width: 10rem;
+.filter {
+  border: 1px solid var(--jp-border);
 }
 
 button:disabled {
@@ -221,7 +285,7 @@ button:disabled {
 }
 
 .tree,
-.grid {
+.grid-wrap {
   border: 1px solid var(--jp-border);
   border-radius: var(--jp-radius);
   background: var(--jp-bg-elev);
@@ -245,87 +309,76 @@ button:disabled {
   background: color-mix(in srgb, var(--jp-accent) 16%, transparent);
 }
 
-.tree-item.nested {
-  padding-left: 0.9rem;
-}
-
 .tree-label {
-  margin: 0.35rem 0 0.15rem;
+  margin: 0.15rem 0;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--jp-muted);
 }
 
-.grid {
+.grid-wrap {
   padding: 0.55rem;
 }
 
-.group {
-  margin-bottom: 0.8rem;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.65rem;
 }
 
-h2 {
-  margin: 0 0 0.4rem;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--jp-muted);
-}
-
-.cards {
+.tile {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-}
-
-.card {
-  display: flex;
-  gap: 0.45rem;
-  align-items: center;
-  width: min(22rem, 100%);
+  flex-direction: column;
+  gap: 0.3rem;
   text-align: start;
-  padding: 0.3rem;
+  padding: 0.35rem;
+  min-width: 0;
 }
 
-.card.selected {
+.tile.selected {
   outline: 2px solid var(--jp-accent);
 }
 
 .thumb {
-  width: 7.5rem;
-  height: 4.4rem;
-  object-fit: cover;
-  background: #c5c5c5;
-  flex: 0 0 7.5rem;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.folder-thumb,
+.video-thumb,
+.pub-thumb {
+  display: grid;
+  place-items: center;
+  color: #f4f4f4;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.folder-thumb {
+  background: #3d4a5c;
 }
 
 .video-thumb {
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: #3a3a3a;
-  font-size: 1.2rem;
+  background: #2a2a2a;
+  font-size: 1.4rem;
 }
 
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
+.pub-thumb {
+  background: #3a3228;
 }
 
-.meta strong {
-  font-size: 12px;
-  font-weight: 600;
+.cap {
+  font-size: 11px;
+  line-height: 1.25;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pub {
-  display: block;
-  margin-top: 0.2rem;
-  text-align: start;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .empty {

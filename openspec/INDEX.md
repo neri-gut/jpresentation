@@ -2,7 +2,7 @@
 
 Migración de **JMultimedia 2.8.01** (Windows / .NET) a **Tauri 2.11 + Vue 3 + TypeScript + Rust + SQLite**.
 
-Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `034-stage-reopen-arbol-local` (`001`, `029`–`033` cerrados).
+Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `035-explorador-rejilla-imagen` (`001`, `029`–`034` cerrados).
 
 ## Cómo leer
 
@@ -10,7 +10,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 2. Plataforma: `arquitectura`, `practicas`, `sincronizacion`, `extensibilidad`, `seguridad`, `rendimiento`, `tema`, `cache`, `onboarding`, `licencia-updater`, `fundidos`, `cadena-suministro`, `devcontainer`
 3. Dominios: `canciones`, `audio`, `atajos`, `alertas`, `cronometro`, `programa-semanal`, `multimedia`, `proveedor-medios`, `biblia`, `texto`, `navegador`, `panel`, `perfiles`, `ventanas`
 4. `grabador` — retirado
-5. Changes `001` … `034-stage-reopen-arbol-local`
+5. Changes `001` … `035-explorador-rejilla-imagen`
 6. Research: `jwpub-mwb-S-202609`, `pub-media-getpubmedialinks`, `biblia-jwpub`, `idiomas`, `json-locales`, `himnario-sjjm`, `plantillas-evento`, `textos-csv`, `huecos`
 
 ## Decisiones
@@ -86,6 +86,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 | 032 | Guía de la semana: catálogo, JWPUB, cache `week/` |
 | 033 | Explorador de archivos → stage; outline en cronómetro |
 | 034 | Reabrir stage + árbol de carpetas locales |
+| 035 | Rejilla del explorador + imagen del auditorio sin estirar |
 
 ## Implementación (cuando salgamos de specs)
 

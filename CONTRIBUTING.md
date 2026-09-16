@@ -1,6 +1,6 @@
 # Contribuir a JPresentation
 
-Specs primero: `openspec/INDEX.md` y el change abierto (`034-stage-reopen-arbol-local`). No se implementa nada que no esté en un change.
+Specs primero: `openspec/INDEX.md` y el change abierto (`035-explorador-rejilla-imagen`). No se implementa nada que no esté en un change.
 
 ## Entorno preferido
 
