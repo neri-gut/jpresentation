@@ -1,0 +1,23 @@
+[
+  { "langwritten": "E", "name": "English", "locale": "en", "direction": "ltr", "script": "" },
+  { "langwritten": "S", "name": "español", "locale": "es", "direction": "ltr", "script": "" },
+  { "langwritten": "F", "name": "français", "locale": "fr", "direction": "ltr", "script": "" },
+  { "langwritten": "I", "name": "italiano", "locale": "it", "direction": "ltr", "script": "" },
+  { "langwritten": "X", "name": "German", "locale": "de", "direction": "ltr", "script": "" },
+  { "langwritten": "T", "name": "Portuguese (Brazil)", "locale": "pt", "direction": "ltr", "script": "" },
+  { "langwritten": "U", "name": "Russian", "locale": "ru", "direction": "ltr", "script": "" },
+  { "langwritten": "J", "name": "Japanese", "locale": "ja", "direction": "ltr", "script": "" },
+  { "langwritten": "KO", "name": "Korean", "locale": "ko", "direction": "ltr", "script": "" },
+  { "langwritten": "CHS", "name": "Chinese Mandarin (Simplified)", "locale": "cmn-hans", "direction": "ltr", "script": "" },
+  { "langwritten": "CH", "name": "Chinese Mandarin (Traditional)", "locale": "cmn-hant", "direction": "ltr", "script": "" },
+  { "langwritten": "A", "name": "Arabic", "locale": "ar", "direction": "rtl", "script": "" },
+  { "langwritten": "G", "name": "Greek", "locale": "el", "direction": "ltr", "script": "" },
+  { "langwritten": "O", "name": "Dutch", "locale": "nl", "direction": "ltr", "script": "" },
+  { "langwritten": "P", "name": "Polish", "locale": "pl", "direction": "ltr", "script": "" },
+  { "langwritten": "K", "name": "Ukrainian", "locale": "uk", "direction": "ltr", "script": "" },
+  { "langwritten": "IN", "name": "Indonesian", "locale": "id", "direction": "ltr", "script": "" },
+  { "langwritten": "TG", "name": "Tagalog", "locale": "tl", "direction": "ltr", "script": "" },
+  { "langwritten": "AM", "name": "Amharic", "locale": "am", "direction": "ltr", "script": "" },
+  { "langwritten": "HI", "name": "Hindi", "locale": "hi", "direction": "ltr", "script": "" },
+  { "langwritten": "Z", "name": "Swedish", "locale": "sv", "direction": "ltr", "script": "" }
+]

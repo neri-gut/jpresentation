@@ -1,6 +1,6 @@
 # Contribuir a JPresentation
 
-Specs primero: `openspec/INDEX.md` y el change abierto. No se implementa nada que no esté en un change.
+Specs primero: `openspec/INDEX.md` y el change abierto (`029-perfil-congregacion`). No se implementa nada que no esté en un change.
 
 ## Entorno preferido
 
@@ -39,11 +39,14 @@ npm run tauri dev
 
 El frontend Vite queda en `http://localhost:1420`. Tauri abre la ventana Operador y crea Auditorio (y Orador si el perfil lo tiene activo).
 
-Pruebas de dominio (sin WebView):
+Pruebas de dominio (sin WebView) y empaquetado de frontend (CI de `029`):
 
 ```bash
 cargo test --manifest-path src-tauri/Cargo.toml --locked
+npm run build
 ```
+
+CI: `.github/workflows/ci.yml` (`npm ci --ignore-scripts` + `npm run build`, `cargo test --locked`) y `supply-chain.yml` (`npm audit`, `cargo audit` con `continue-on-error`).
 
 Si el clone vive en exFAT (sin exec/symlinks), apunta el target a un disco nativo:
 

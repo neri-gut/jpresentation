@@ -3,13 +3,17 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::domain::platform::SurfacesSetting;
-use crate::domain::profile::{AppearanceSetting, PanelSetting, SettingDto, SettingKeyDto};
+use crate::domain::profile::{
+    validate_appearance, AppearanceSetting, PanelSetting, SettingDto, SettingKeyDto,
+};
+use crate::domain::schedule::{validate_meeting_schedule, MeetingScheduleSetting};
 use crate::error::AppError;
 
 /// Known settings keys. Values are named DTOs encoded as JSON text.
 pub const KEY_APPEARANCE: &str = "appearance";
 pub const KEY_SURFACES: &str = "surfaces";
 pub const KEY_PANEL: &str = "panel";
+pub const KEY_MEETING_SCHEDULE: &str = "meeting_schedule";
 
 /// rusqlite settings cells keyed by profile + name.
 pub struct SqliteSettingsStore<'a> {
@@ -72,15 +76,23 @@ fn default_json(key: &str) -> Result<String, AppError> {
         KEY_APPEARANCE => encode(&AppearanceSetting::default()),
         KEY_SURFACES => encode(&SurfacesSetting::default()),
         KEY_PANEL => encode(&PanelSetting::default()),
+        KEY_MEETING_SCHEDULE => encode(&MeetingScheduleSetting::default()),
         _ => Err(AppError::Invariant(format!("unknown setting key: {key}"))),
     }
 }
 
 fn validate_value(key: &str, value_json: &str) -> Result<(), AppError> {
     match key {
-        KEY_APPEARANCE => parse_json::<AppearanceSetting>(value_json).map(|_| ()),
+        KEY_APPEARANCE => {
+            let value = parse_json::<AppearanceSetting>(value_json)?;
+            validate_appearance(&value)
+        }
         KEY_SURFACES => parse_json::<SurfacesSetting>(value_json).map(|_| ()),
         KEY_PANEL => parse_json::<PanelSetting>(value_json).map(|_| ()),
+        KEY_MEETING_SCHEDULE => {
+            let value = parse_json::<MeetingScheduleSetting>(value_json)?;
+            validate_meeting_schedule(&value)
+        }
         _ => Err(AppError::Invariant(format!("unknown setting key: {key}"))),
     }
 }
@@ -99,11 +111,16 @@ mod tests {
     use crate::db::{configure_connection, migrate, SqliteProfileStore};
     use crate::domain::profile::{CreateProfileDto, ProfileStore};
 
-    #[test]
-    fn missing_appearance_returns_system_compact() {
+    fn memory() -> Connection {
         let conn = Connection::open_in_memory().expect("memory");
         configure_connection(&conn).expect("pragma");
         migrate(&conn).expect("migrate");
+        conn
+    }
+
+    #[test]
+    fn missing_appearance_returns_system_compact() {
+        let conn = memory();
         let profiles = SqliteProfileStore::new(&conn);
         let profile = profiles
             .create(CreateProfileDto {
@@ -120,5 +137,69 @@ mod tests {
         let appearance: AppearanceSetting = parse_json(&cell.value_json).expect("json");
         assert_eq!(appearance.theme, "system");
         assert_eq!(appearance.density, "compact");
+        assert_eq!(appearance.accent, "blue");
+    }
+
+    #[test]
+    fn missing_schedule_returns_tuesday_sunday_defaults() {
+        let conn = memory();
+        let profiles = SqliteProfileStore::new(&conn);
+        let profile = profiles
+            .create(CreateProfileDto {
+                name: "Cong A".into(),
+            })
+            .expect("create");
+        let settings = SqliteSettingsStore::new(&conn);
+        let cell = settings
+            .get(&SettingKeyDto {
+                profile_id: profile.id.0,
+                key: KEY_MEETING_SCHEDULE.into(),
+            })
+            .expect("get");
+        let schedule: MeetingScheduleSetting = parse_json(&cell.value_json).expect("json");
+        assert_eq!(schedule.midweek_weekday, 2);
+        assert_eq!(schedule.midweek_time, "19:00");
+        assert_eq!(schedule.weekend_weekday, 7);
+        assert_eq!(schedule.weekend_time, "10:00");
+    }
+
+    #[test]
+    fn rejects_unknown_accent() {
+        let conn = memory();
+        let profiles = SqliteProfileStore::new(&conn);
+        let profile = profiles
+            .create(CreateProfileDto {
+                name: "Cong A".into(),
+            })
+            .expect("create");
+        let settings = SqliteSettingsStore::new(&conn);
+        let err = settings
+            .set(&SettingDto {
+                profile_id: profile.id.0,
+                key: KEY_APPEARANCE.into(),
+                value_json: r##"{"theme":"dark","accent":"#ff00aa","density":"compact"}"##.into(),
+            })
+            .expect_err("hex");
+        assert!(matches!(err, AppError::Invariant(_)));
+    }
+
+    #[test]
+    fn rejects_invalid_schedule_time() {
+        let conn = memory();
+        let profiles = SqliteProfileStore::new(&conn);
+        let profile = profiles
+            .create(CreateProfileDto {
+                name: "Cong A".into(),
+            })
+            .expect("create");
+        let settings = SqliteSettingsStore::new(&conn);
+        let err = settings
+            .set(&SettingDto {
+                profile_id: profile.id.0,
+                key: KEY_MEETING_SCHEDULE.into(),
+                value_json: r#"{"midweek_weekday":2,"midweek_time":"9:00","weekend_weekday":7,"weekend_time":"10:00"}"#.into(),
+            })
+            .expect_err("time");
+        assert!(matches!(err, AppError::Invariant(_)));
     }
 }

@@ -1,7 +1,7 @@
 /** Opaque profile identifier (UUID string). */
 export type ProfileId = string;
 
-/** Congregation profile as returned by Rust. `contentLocale` is a JW langwritten code. */
+/** Congregation profile as returned by Rust. `content_locale` is a JW langwritten code. */
 export interface ProfileDto {
   id: ProfileId;
   name: string;
@@ -27,6 +27,26 @@ export interface UpdateProfileDto {
   id: ProfileId;
   name?: string;
   ui_locale?: string;
+  content_locale?: string;
+}
+
+/** Payload for `profile_duplicate`. */
+export interface DuplicateProfileDto {
+  id: ProfileId;
+}
+
+/** Payload for `profile_delete`. */
+export interface DeleteProfileDto {
+  id: ProfileId;
+}
+
+/** JW content language from the embedded seed. */
+export interface ContentLanguageDto {
+  langwritten: string;
+  name: string;
+  locale: string;
+  direction: string;
+  script: string;
 }
 
 /** Lookup key for `settings_get`. */
@@ -45,7 +65,7 @@ export interface SettingDto {
 /** Console appearance stored per profile. */
 export interface AppearanceSetting {
   theme: "system" | "light" | "dark";
-  accent: string;
+  accent: "blue" | "teal" | "violet" | "amber";
   density: "comfortable" | "compact";
 }
 
@@ -60,6 +80,14 @@ export interface SurfacesSetting {
   audience_monitor_id: string | null;
   speaker_monitor_id: string | null;
   use_speaker: boolean;
+}
+
+/** Midweek and weekend meeting times in the machine local timezone. */
+export interface MeetingScheduleSetting {
+  midweek_weekday: number;
+  midweek_time: string;
+  weekend_weekday: number;
+  weekend_time: string;
 }
 
 /** A physical display as shown in Settings. */

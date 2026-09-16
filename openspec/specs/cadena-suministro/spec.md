@@ -14,9 +14,19 @@ Cada PR y `main`:
 
 - `npm audit --omit=dev` con umbral configurable (fail en critical/high de runtime)
 - `cargo audit` (o `cargo deny advisories`)
+- `npm ci --ignore-scripts` + `npm run build` (incluye `vue-tsc --noEmit`)
+- `cargo test --manifest-path src-tauri/Cargo.toml --locked`
 - licencia: no GPL accidental en el binario si el proyecto es más permisivo (la licencia del repo se decide en el scaffold; deny.toml la refleja)
 
+El job de `cargo audit` MAY degradar a warning si el token de GitHub no está (PRs de fork); MUST NOT impedir que `frontend` y `rust` reporten su propio fallo.
+
 Dependabot o Renovate: PRs de parches. Tauri y plugins oficiales se suben con change SDD, no en silencio.
+
+#### Scenario: PR con test de dominio roto
+- GIVEN un PR que rompe `ProfileStore::delete`
+- WHEN corre CI
+- THEN el job `rust` falla
+- AND no se mergea en verde
 
 ### Requirement: Scripts de instalación
 MUST NOT ejecutar `postinstall` de terceros que bajen binarios opacos. Binarios nativos: crates Tauri / toolchain Rust. `package.json` scripts solo llaman a Vite/Tauri/eslint.

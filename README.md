@@ -8,7 +8,7 @@ Stack: **Tauri 2.11** + Vue 3 + TypeScript + Rust + SQLite WAL.
 
 Las cajas `tauri` y `tauri-build` **no comparten número de parche**. Runtime: `tauri` 2.11.x (y `@tauri-apps/api` acorde). Generador de build: `tauri-build` 2.6.x. El CLI npm (`@tauri-apps/cli`) puede ir un parche por delante del crate. No forzar `tauri-build = 2.11`. Prohibido Tauri 3 alpha.
 
-Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`001-cimentacion-tauri-vue`](openspec/changes/001-cimentacion-tauri-vue/).
+Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`029-perfil-congregacion`](openspec/changes/029-perfil-congregacion/). `001` cerrado.
 
 ## Requisitos
 
@@ -54,7 +54,12 @@ Tras `npm run tauri dev`:
 5. Con un solo monitor, el auditorio abre como ventana flotante de previsualización, sin fullscreen encima de la consola.
 6. Cerrar y reabrir conserva el perfil (UI `en` en perfiles nuevos) y la asignación de monitores.
 7. Un fallo en un comando de la consola muestra un aviso en el operador; el auditorio no se cierra.
+8. **Configuración → idioma de contenido**: el selector lista la semilla (p. ej. `S`, `TG`); no hay petición de red. El menú Idiomas sigue cambiando solo la UI.
+9. Horario de las dos reuniones (weekday + hora) se guarda por perfil y sobrevive un reinicio.
+10. Acento (blue/teal/violet/amber) y densidad cambian la consola en caliente; el auditorio permanece negro.
+11. **Identificar** muestra nombre y resolución ~2 s en cada pantalla y no mueve auditorio ni orador.
+12. Borrar el único perfil se rechaza (`LastProfile`). Duplicar copia settings y no selecciona la copia.
 
-## Fuera de alcance (v1 / change 001)
+## Fuera de alcance (v1 / change 029)
 
-Grabador de audio, CCTV, precucha, himnario/Biblia en el git, parser JWPUB, red de contenidos, Tauri 3 alpha.
+Grabador de audio, CCTV, precucha, himnario/Biblia en el git, parser JWPUB, catálogo HTTP, asistente de 9 pasos, Tauri 3 alpha.

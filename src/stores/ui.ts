@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { invokeCommand } from "@/composables/invoke";
 import type {
   AppearanceSetting,
+  MeetingScheduleSetting,
   MonitorDto,
   PanelSetting,
   SettingDto,
@@ -36,6 +37,13 @@ const defaultSurfaces: SurfacesSetting = {
   use_speaker: false,
 };
 
+const defaultSchedule: MeetingScheduleSetting = {
+  midweek_weekday: 2,
+  midweek_time: "19:00",
+  weekend_weekday: 7,
+  weekend_time: "10:00",
+};
+
 /**
  * Operator chrome: theme, panel, monitors, toasts. Audience/speaker windows ignore this store.
  */
@@ -43,17 +51,19 @@ export const useUiStore = defineStore("ui", () => {
   const appearance = ref<AppearanceSetting>({ ...defaultAppearance });
   const panel = ref<PanelSetting>({ ...defaultPanel });
   const surfaces = ref<SurfacesSetting>({ ...defaultSurfaces });
+  const schedule = ref<MeetingScheduleSetting>({ ...defaultSchedule });
   const monitors = ref<MonitorDto[]>([]);
   const toast = ref<string | null>(null);
   const aboutOpen = ref(false);
   const settingsOpen = ref(false);
   const openMenu = ref<"languages" | "tools" | "settings" | null>(null);
 
-  /** Reads appearance, panel, surfaces, and the monitor list for a profile. */
+  /** Reads appearance, panel, surfaces, schedule, and the monitor list for a profile. */
   async function hydrate(profileId: string): Promise<void> {
     appearance.value = await readSetting(profileId, "appearance", defaultAppearance);
     panel.value = await readSetting(profileId, "panel", defaultPanel);
     surfaces.value = await readSetting(profileId, "surfaces", defaultSurfaces);
+    schedule.value = await readSetting(profileId, "meeting_schedule", defaultSchedule);
     applyAppearance(appearance.value);
     try {
       monitors.value = await invokeCommand<MonitorDto[]>("monitors_list");
@@ -87,6 +97,15 @@ export const useUiStore = defineStore("ui", () => {
     await writeSetting(profileId, "surfaces", next);
   }
 
+  /** Persists midweek and weekend meeting times. */
+  async function setSchedule(
+    profileId: string,
+    next: MeetingScheduleSetting,
+  ): Promise<void> {
+    schedule.value = next;
+    await writeSetting(profileId, "meeting_schedule", next);
+  }
+
   /** Shows a console-only toast. The audience is not notified. */
   function showToast(message: string): void {
     toast.value = message;
@@ -101,6 +120,7 @@ export const useUiStore = defineStore("ui", () => {
     appearance,
     panel,
     surfaces,
+    schedule,
     monitors,
     toast,
     aboutOpen,
@@ -110,6 +130,7 @@ export const useUiStore = defineStore("ui", () => {
     setAppearance,
     setPanel,
     setSurfaces,
+    setSchedule,
     showToast,
   };
 });

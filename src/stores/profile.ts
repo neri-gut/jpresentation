@@ -1,10 +1,12 @@
-import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import { defineStore } from "pinia";
 
 import { invokeCommand } from "@/composables/invoke";
 import { setUiLocale } from "@/i18n";
 import type {
   CreateProfileDto,
+  DeleteProfileDto,
+  DuplicateProfileDto,
   ProfileDto,
   SelectProfileDto,
   UpdateProfileDto,
@@ -60,7 +62,7 @@ export const useProfileStore = defineStore("profile", () => {
     profiles.value = list;
   }
 
-  /** Persists UI locale (and optional name) on the current profile. */
+  /** Persists name, UI locale, and/or content locale on a profile. */
   async function update(payload: UpdateProfileDto): Promise<void> {
     const updated = await invokeCommand<ProfileDto, UpdateProfileDto>(
       "profile_update",
@@ -73,6 +75,32 @@ export const useProfileStore = defineStore("profile", () => {
     );
   }
 
+  /** Copies a profile and its settings. Does not select the copy. */
+  async function duplicate(id: string): Promise<ProfileDto> {
+    const payload: DuplicateProfileDto = { id };
+    const copied = await invokeCommand<ProfileDto, DuplicateProfileDto>(
+      "profile_duplicate",
+      payload,
+    );
+    const list = await invokeCommand<ProfileDto[]>("profile_list");
+    profiles.value = list;
+    return copied;
+  }
+
+  /** Deletes a profile. Rust returns the profile that remains selected. */
+  async function remove(id: string): Promise<ProfileDto> {
+    const payload: DeleteProfileDto = { id };
+    const remaining = await invokeCommand<ProfileDto, DeleteProfileDto>(
+      "profile_delete",
+      payload,
+    );
+    current.value = remaining;
+    setUiLocale(remaining.ui_locale);
+    const list = await invokeCommand<ProfileDto[]>("profile_list");
+    profiles.value = list;
+    return remaining;
+  }
+
   return {
     profiles,
     current,
@@ -81,5 +109,7 @@ export const useProfileStore = defineStore("profile", () => {
     create,
     select,
     update,
+    duplicate,
+    remove,
   };
 });

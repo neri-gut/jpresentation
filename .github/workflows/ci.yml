@@ -1,4 +1,4 @@
-name: supply-chain
+name: ci
 
 on:
   pull_request:
@@ -6,28 +6,27 @@ on:
     branches: [main, master]
 
 jobs:
-  npm-audit:
-    if: hashFiles('package-lock.json') != ''
+  frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: npm version
-        run: npm -v
+          cache: npm
       - name: ci
         run: npm ci --ignore-scripts
-      - name: audit runtime
-        run: npm audit --omit=dev --audit-level=high
+      - name: build
+        run: npm run build
 
-  cargo-audit:
+  rust:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: cargo audit
-        continue-on-error: true
+      - name: WebKitGTK 4.1
         run: |
-          cargo install cargo-audit --locked
-          cargo audit --manifest-path src-tauri/Cargo.toml
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
+      - name: test
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked

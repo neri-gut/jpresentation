@@ -9,9 +9,9 @@ import RightPanel from "@/components/RightPanel.vue";
 import SettingsDialog from "@/components/SettingsDialog.vue";
 import { registeredFeatures } from "@/features/registry";
 import { uiLocales } from "@/i18n";
+import { errorMessage } from "@/composables/errors";
 import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
-import type { AppErrorDto } from "@/types/dto";
 
 const { t } = useI18n();
 const features = registeredFeatures();
@@ -35,7 +35,7 @@ async function chooseLocale(locale: string): Promise<void> {
   try {
     await profiles.update({ id: profiles.current.id, ui_locale: locale });
   } catch (err) {
-    ui.showToast(errorMessage(err));
+    ui.showToast(errorMessage(err, t));
   }
 }
 
@@ -47,13 +47,6 @@ function openAbout(): void {
 function openSettings(): void {
   closeMenus();
   settingsOpen.value = true;
-}
-
-function errorMessage(err: unknown): string {
-  if (err && typeof err === "object" && "message" in err) {
-    return (err as AppErrorDto).message;
-  }
-  return t("errors.invokeFailed");
 }
 
 function onDocumentClick(): void {

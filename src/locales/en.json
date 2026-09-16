@@ -58,22 +58,44 @@
   "settings": {
     "uiLanguage": "App language",
     "contentLanguage": "Content language",
+    "contentFilter": "Filter by name or code",
     "title": "Settings",
     "profiles": "Profiles",
     "createProfile": "Create profile",
     "profileName": "Profile name",
     "create": "Create",
+    "rename": "Rename",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "confirmDelete": "Delete profile {name}? This cannot be undone.",
+    "meetings": "Meetings",
+    "midweek": "Midweek",
+    "weekend": "Weekend",
     "monitors": "Displays",
     "audienceMonitor": "Audience display",
     "speakerMonitor": "Speaker display",
     "useSpeaker": "Use speaker monitor",
+    "identify": "Identify displays",
     "theme": "Theme",
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark",
+    "accent": "Accent",
+    "density": "Density",
+    "densityCompact": "Compact",
+    "densityComfortable": "Comfortable",
     "previewMonitor": "Preview window (single display)",
     "close": "Close",
     "noMonitors": "No displays reported"
+  },
+  "weekday": {
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday",
+    "7": "Sunday"
   },
   "views": {
     "placeholder": "This tab is a placeholder. Domain features arrive in later OpenSpec changes.",
@@ -94,7 +116,11 @@
   "errors": {
     "invokeFailed": "The console could not complete that action.",
     "busy": "The app is busy. Try again.",
-    "notFound": "Not found."
+    "notFound": "Not found.",
+    "lastProfile": "The last profile cannot be deleted.",
+    "unknownContentLanguage": "That content language is not in the seed list.",
+    "monitorMissing": "The speaker display is not available. A preview window was opened instead.",
+    "confirmDelete": "Delete this profile? This cannot be undone."
   },
   "common": {
     "ok": "OK",

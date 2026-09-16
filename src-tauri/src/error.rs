@@ -8,6 +8,12 @@ pub enum AppError {
     NotFound,
     #[error("busy")]
     Busy,
+    #[error("cannot delete the last profile")]
+    LastProfile,
+    #[error("unknown content language")]
+    UnknownContentLanguage,
+    #[error("monitor missing")]
+    MonitorMissing,
     #[error("invariant: {0}")]
     Invariant(String),
     #[error("io: {0}")]
@@ -22,6 +28,9 @@ impl AppError {
         match self {
             Self::NotFound => "NotFound",
             Self::Busy => "Busy",
+            Self::LastProfile => "LastProfile",
+            Self::UnknownContentLanguage => "UnknownContentLanguage",
+            Self::MonitorMissing => "MonitorMissing",
             Self::Invariant(_) => "Invariant",
             Self::Io(_) => "Io",
             Self::Db(_) => "Db",
@@ -62,5 +71,14 @@ mod tests {
         let dto = AppErrorDto::from(AppError::NotFound);
         assert_eq!(dto.code, "NotFound");
         assert_eq!(dto.rev, 0);
+        assert_eq!(AppErrorDto::from(AppError::LastProfile).code, "LastProfile");
+        assert_eq!(
+            AppErrorDto::from(AppError::UnknownContentLanguage).code,
+            "UnknownContentLanguage"
+        );
+        assert_eq!(
+            AppErrorDto::from(AppError::MonitorMissing).code,
+            "MonitorMissing"
+        );
     }
 }

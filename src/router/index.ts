@@ -30,5 +30,10 @@ export const router = createRouter({
       name: "speaker",
       component: () => import("@/windows/SpeakerApp.vue"),
     },
+    {
+      path: "/identify",
+      name: "identify",
+      component: () => import("@/windows/IdentifyApp.vue"),
+    },
   ],
 });

@@ -97,6 +97,30 @@ Sin audio. Sin cursor persistente. Sin menú. Off = no se crea la ventana; el HU
 
 Si el monitor asignado no está, se avisa y no se roba el auditorio.
 
+`usar orador = off` → no hay ventana orador (el HUD vive en la consola). `usar orador = on` y `speaker_monitor_id` vacío, ausente o igual al del auditorio → ventana **flotante de previsualización** (decorada, no fullscreen sobre la consola). MUST NOT ocultarse. MUST NOT mover el auditorio. Si el id guardado ya no existe, la consola muestra `MonitorMissing`.
+
+Identificar: el sistema MUST mostrar en **cada** pantalla detectada un destello con el nombre y la resolución durante **2 s**, y luego destruir esas ventanas. MUST NOT cambiar la colocación de auditorio ni orador.
+
+#### Scenario: Orador sin pantalla asignada
+- GIVEN `use_speaker = true` y `speaker_monitor_id` vacío
+- WHEN se aplican las superficies
+- THEN el orador abre como ventana flotante
+- AND no se oculta
+- AND no se pone fullscreen sobre la consola
+
+#### Scenario: Monitor de orador desconectado
+- GIVEN orador asignado al id `HDMI@0,0` y ese monitor ya no está
+- WHEN arranca o se reaplican superficies
+- THEN el orador pasa a previsualización
+- AND el auditorio permanece donde estaba
+- AND la consola muestra `MonitorMissing`
+
+#### Scenario: Identificar
+- GIVEN dos monitores
+- WHEN el operador pulsa Identificar
+- THEN cada pantalla muestra su nombre y `width×height` unos 2 s
+- AND auditorio y orador siguen en su sitio al terminar
+
 ### Requirement: Opciones avanzadas del HUD
 Todo por perfil. El tiempo (restante o desfase) MUST seguir visible; no hay modo “ocultar reloj”.
 

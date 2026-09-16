@@ -6,9 +6,13 @@ commands.allow = [
   "profile_create",
   "profile_select",
   "profile_update",
+  "profile_duplicate",
+  "profile_delete",
+  "content_languages_list",
   "settings_get",
   "settings_set",
   "monitors_list",
+  "monitors_identify",
   "output_get"
 ]
 

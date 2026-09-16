@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual para **empezar código** es `001-cimentacion-tauri-vue`.
+No implementes nada que no esté en un change abierto. El change actual de código es `029-perfil-congregacion`. `001` está cerrado.
 
-## Change 001 (hacer ahora)
+## Change 029 (hacer ahora)
 
-`create-tauri-app` plantilla `vue-ts`. Devcontainer. Lockfiles. Tres ventanas vacías (operador / auditorio negro / orador HUD stub). SQLite perfiles. i18n `en` fuente + fallback. Sin himnario, sin parser, sin red de contenidos.
+Contrato de congregación sobre el scaffold de `001`: `content_langwritten` con semilla (sin red), CRUD de perfil (duplicar / borrar con confirmación, no borrar el último), horario de las dos reuniones, acento+densidad, identificar monitores, orador activo sin pantalla = preview, CI (`npm run build` + `cargo test --locked` + `cargo audit`). Sin wizard, sin JWPUB, sin catálogo HTTP.
 
 ## Prohibido
 

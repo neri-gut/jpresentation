@@ -42,3 +42,43 @@
   --jp-warn: #fdb022;
   --jp-shadow: 0 8px 24px rgb(0 0 0 / 35%);
 }
+
+:root[data-accent="blue"] {
+  --jp-accent: #1d4ed8;
+  --jp-accent-fg: #ffffff;
+}
+
+:root[data-theme="dark"][data-accent="blue"] {
+  --jp-accent: #60a5fa;
+  --jp-accent-fg: #0b1220;
+}
+
+:root[data-accent="teal"] {
+  --jp-accent: #0f766e;
+  --jp-accent-fg: #ffffff;
+}
+
+:root[data-theme="dark"][data-accent="teal"] {
+  --jp-accent: #2dd4bf;
+  --jp-accent-fg: #042f2e;
+}
+
+:root[data-accent="violet"] {
+  --jp-accent: #6d28d9;
+  --jp-accent-fg: #ffffff;
+}
+
+:root[data-theme="dark"][data-accent="violet"] {
+  --jp-accent: #c4b5fd;
+  --jp-accent-fg: #1e1b4b;
+}
+
+:root[data-accent="amber"] {
+  --jp-accent: #b45309;
+  --jp-accent-fg: #ffffff;
+}
+
+:root[data-theme="dark"][data-accent="amber"] {
+  --jp-accent: #fbbf24;
+  --jp-accent-fg: #1c1917;
+}

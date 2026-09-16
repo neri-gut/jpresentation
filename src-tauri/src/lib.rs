@@ -10,8 +10,9 @@ use tauri::Emitter;
 use tauri::Manager;
 
 use commands::{
-    monitors_list, output_get, profile_create, profile_list, profile_select, profile_update,
-    settings_get, settings_set,
+    content_languages_list, monitors_identify, monitors_list, output_get, profile_create,
+    profile_delete, profile_duplicate, profile_list, profile_select, profile_update, settings_get,
+    settings_set,
 };
 use db::SqliteSettingsStore;
 use domain::output::{OUTPUT_CHANGED, TIMER_CHANGED};
@@ -41,7 +42,7 @@ pub fn run() {
                 (surfaces, bundle)
             };
             app.manage(state);
-            DesktopSurface::new(handle.clone()).ensure_surfaces(&surfaces)?;
+            let _missing = DesktopSurface::new(handle.clone()).ensure_surfaces(&surfaces)?;
             let _ = handle.emit(OUTPUT_CHANGED, &bundle.stage);
             let _ = handle.emit(TIMER_CHANGED, &bundle.clock);
             Ok(())
@@ -51,9 +52,13 @@ pub fn run() {
             profile_create,
             profile_select,
             profile_update,
+            profile_duplicate,
+            profile_delete,
+            content_languages_list,
             settings_get,
             settings_set,
             monitors_list,
+            monitors_identify,
             output_get
         ])
         .run(tauri::generate_context!())

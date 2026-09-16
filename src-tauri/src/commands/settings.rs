@@ -3,7 +3,7 @@ use tauri::{AppHandle, State};
 use crate::db::{SqliteSettingsStore, KEY_SURFACES};
 use crate::domain::platform::SurfacesSetting;
 use crate::domain::profile::{SettingDto, SettingKeyDto};
-use crate::error::AppErrorDto;
+use crate::error::{AppError, AppErrorDto};
 use crate::platform::DesktopSurface;
 use crate::state::AppState;
 
@@ -39,9 +39,12 @@ pub fn settings_set(
                 message: e.to_string(),
                 rev: 0,
             })?;
-        DesktopSurface::new(app)
+        let missing = DesktopSurface::new(app)
             .ensure_surfaces(&surfaces)
             .map_err(AppErrorDto::from)?;
+        if missing {
+            return Err(AppErrorDto::from(AppError::MonitorMissing));
+        }
     }
     Ok(saved)
 }

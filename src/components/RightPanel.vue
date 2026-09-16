@@ -3,9 +3,9 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { errorMessage } from "@/composables/errors";
 import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
-import type { AppErrorDto } from "@/types/dto";
 
 const { t } = useI18n();
 const ui = useUiStore();
@@ -31,11 +31,7 @@ async function toggle(): Promise<void> {
       collapsed: !panel.value.collapsed,
     });
   } catch (err) {
-    const message =
-      err && typeof err === "object" && "message" in err
-        ? (err as AppErrorDto).message
-        : t("errors.invokeFailed");
-    ui.showToast(message);
+    ui.showToast(errorMessage(err, t));
   }
 }
 </script>
