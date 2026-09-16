@@ -113,13 +113,43 @@ export interface AppErrorDto {
   rev: number;
 }
 
-/** Stage kind. Change 001 only has `none`. */
-export type StageKind = "none";
+/** What the audience is showing. */
+export type StageKind = "none" | "image" | "video";
 
 /** Versioned stage snapshot. */
 export interface StageSnapshot {
   rev: number;
   kind: StageKind;
+  name?: string | null;
+  mime?: string | null;
+  path?: string | null;
+}
+
+export type ExplorerKind = "dir" | "image" | "video" | "jwpub";
+
+export interface ExplorerEntryDto {
+  name: string;
+  path: string;
+  kind: ExplorerKind;
+}
+
+export interface ExplorerListDto {
+  path: string;
+  parent: string | null;
+  entries: ExplorerEntryDto[];
+}
+
+export interface ExplorerSetting {
+  roots: string[];
+}
+
+export interface ExplorerPathDto {
+  path: string;
+}
+
+export interface FilePreviewDto {
+  mime: string;
+  data_base64: string;
 }
 
 /** Assignment clock. `armed` is ready or paused. */
@@ -158,6 +188,84 @@ export interface OutputBundleDto {
 export interface SpeakerUiDto {
   mode: SpeakerMode;
   message: string;
+}
+
+/** Which rolling week the Multimedia tab is showing. */
+export type WeekWhich = "this" | "next";
+
+export type MeetingKind = "midweek" | "weekend";
+export type MediaKind = "image" | "video" | "song";
+export type MediaStatus =
+  | "embedded"
+  | "ready"
+  | "pending"
+  | "pending_hymnal"
+  | "failed";
+
+export type MediaRef =
+  | { kind: "embedded"; path: string }
+  | {
+      kind: "catalog";
+      key_symbol: string;
+      track: number;
+      lang_meps: number;
+      issue_tag: number;
+      mime: string;
+    };
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  media_kind: MediaKind;
+  status: MediaStatus;
+  mime: string;
+  media_ref: MediaRef;
+  cache_path: string | null;
+}
+
+export interface MeetingPart {
+  id: string;
+  title: string;
+  minutes: number | null;
+  items: MediaItem[];
+}
+
+export interface MeetingWeek {
+  monday: string;
+  kind: MeetingKind;
+  title: string;
+  langwritten: string;
+  pub_symbol: string;
+  issue: string;
+  parts: MeetingPart[];
+}
+
+export interface WeekBundleDto {
+  monday: string;
+  langwritten: string;
+  midweek: MeetingWeek;
+  weekend: MeetingWeek;
+}
+
+export interface WeekScopeDto {
+  which: WeekWhich;
+}
+
+export interface WeekPreviewRequestDto {
+  which: WeekWhich;
+  item_id: string;
+}
+
+export interface WeekPreviewDto {
+  mime: string;
+  data_base64: string;
+}
+
+export interface WeekProgressDto {
+  phase: string;
+  done: number;
+  total: number;
+  label: string;
 }
 
 /** Idle clock used before the first snapshot. */

@@ -1,3 +1,4 @@
+mod catalog;
 mod commands;
 mod db;
 pub mod domain;
@@ -5,6 +6,7 @@ mod error;
 mod jobs;
 mod platform;
 mod state;
+mod week_service;
 
 use tauri::Emitter;
 use tauri::Manager;
@@ -13,9 +15,12 @@ use std::thread;
 use std::time::Duration;
 
 use commands::{
-    clock_arm, clock_finish, clock_pause, clock_start, content_languages_list, monitors_identify,
+    clock_arm, clock_finish, clock_pause, clock_start, content_languages_list, explorer_add_root,
+    explorer_list, explorer_open_jwpub, explorer_pick_root, explorer_preview, explorer_remove_root,
+    monitors_identify,
     monitors_list, output_get, profile_create, profile_delete, profile_duplicate, profile_list,
-    profile_select, profile_update, settings_get, settings_set,
+    profile_select, profile_update, settings_get, settings_set, stage_close, stage_open,
+    week_cancel, week_download_media, week_fetch, week_get, week_preview,
 };
 use db::SqliteSettingsStore;
 use domain::output::{OUTPUT_CHANGED, SPEAKER_UI_CHANGED, TIMER_CHANGED};
@@ -88,7 +93,20 @@ pub fn run() {
             clock_arm,
             clock_start,
             clock_pause,
-            clock_finish
+            clock_finish,
+            week_get,
+            week_fetch,
+            week_download_media,
+            week_cancel,
+            week_preview,
+            explorer_list,
+            explorer_add_root,
+            explorer_pick_root,
+            explorer_remove_root,
+            explorer_open_jwpub,
+            explorer_preview,
+            stage_open,
+            stage_close
         ])
         .run(tauri::generate_context!())
         .expect("error while running JPresentation");

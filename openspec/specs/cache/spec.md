@@ -19,7 +19,7 @@ Además: JSON de catálogo de idiomas (TTL) y el cache HTTP del webview (lo gest
 Antes de GETPUBMEDIALINKS + descarga, el repo mira checksum (o tamaño+mtime si no hay hash). Si el fichero cuadra, el ítem queda `ready`. El rendimiento sale de **no decodificar/bajar dos veces**, no de cachear componentes Vue.
 
 ### Requirement: Semana viva
-Se conservan **esta semana y la próxima** del perfil. Al pasar a una semana nueva, `week/` de hace ≥ 2 semanas se puede purgar (el operador confirma si hay > N MB). Himnario y Biblia no entran en esa purga.
+Se conservan **esta semana y la próxima** del perfil. Al pasar a una semana nueva, `week/` de hace ≥ 2 semanas se puede purgar (el operador confirma si hay > N MB). Himnario y Biblia no entran en esa purga. Arrancar la app MUST NOT descargar la semana; el operador pulsa Actualizar. JWPUB, jpeg extraídos y MP4 de guía viven en `week/{langwritten}/{yyyy-mm-dd}/`.
 
 Tope orientativo de `week/` + `thumb/`: 4 GB por perfil (configurable). Al 90 %: aviso, no se apaga el stage.
 

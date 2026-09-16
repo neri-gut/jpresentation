@@ -19,6 +19,8 @@ Sin raíz Record. Cada ítem de guía marca embebido / en cache / pendiente. Los
 ### Requirement: Guía de la semana
 Igual que antes: parsear `mwb`/`w`, bajar solo imágenes/vídeos de esa semana a `video_quality`. No himnario aquí. No barrer semanas futuras salvo “Próxima Semana”.
 
+La pestaña Multimedia SHALL ser un **explorador de ficheros**. Esta/próxima semana se muestran como carpetas de imagen y vídeo en `week/` (`img/`, `vid/`), no como partes del programa. El árbol izquierdo SHALL incluir Home y Desktop (si existen) y subcarpetas expandibles. Seleccionar un fichero lo deja en el panel; Show proyecta. Reemplazar el medio MUST usar un path nuevo en `media/stage/` sin desactivar el orador. El outline vive en Cronómetro. Abrir la pestaña MUST NOT disparar HTTP.
+
 ### Requirement: Explorador local
 Lista de carpeta bajo las raíces del perfil (añadir/quitar raíz en Configuración). Extensiones de v1: `jpg png webp gif mp4 webm mp3 pdf jwpub epub`. Paseo perezoso (no indexar el disco al arrancar). Virtualizar si hay cientos de ficheros.
 

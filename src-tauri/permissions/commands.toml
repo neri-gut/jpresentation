@@ -17,7 +17,20 @@ commands.allow = [
   "clock_arm",
   "clock_start",
   "clock_pause",
-  "clock_finish"
+  "clock_finish",
+  "week_get",
+  "week_fetch",
+  "week_download_media",
+  "week_cancel",
+  "week_preview",
+  "explorer_list",
+  "explorer_add_root",
+  "explorer_pick_root",
+  "explorer_remove_root",
+  "explorer_open_jwpub",
+  "explorer_preview",
+  "stage_open",
+  "stage_close"
 ]
 
 [[permission]]

@@ -29,7 +29,7 @@ Pausar SHALL dejar la parte `armed` con el transcurrido. Terminar SHALL pasar a 
 - AND la barra está al 100 %
 
 ### Requirement: Horarios de la guía del día
-Al abrir Cronómetro con una fecha, el sistema SHALL cargar el `MeetingWeek` de esa fecha si existe. Las filas son las secciones de la guía: canciones (con número), tesoro, gemas, lectura, AYF 1–n, vida cristiana 1–n, CBS, más introducción/conclusión si el parser o la plantilla las aportan. Minutos, título y color vienen de la guía; el operador MAY editar.
+Al abrir Cronómetro con una fecha, el sistema SHALL cargar el `MeetingWeek` de esa fecha si existe. Las filas son las secciones de la guía: canciones (con número), tesoro, gemas, lectura, AYF 1–n, vida cristiana 1–n, CBS, más introducción/conclusión si el parser o la plantilla las aportan. Minutos, título y color vienen de la guía; el operador MAY editar. «Obtener guía» dispara el fetch de catálogo. Pulsar una fila arma el reloj con ese título y minutos y MUST NOT abrir un medio.
 
 #### Scenario: Entre semana ya parseada
 - GIVEN `mwb` de sep 2026 parseado y fecha 7–13 sep

@@ -8,7 +8,7 @@ Stack: **Tauri 2.11** + Vue 3 + TypeScript + Rust + SQLite WAL.
 
 Las cajas `tauri` y `tauri-build` **no comparten número de parche**. Runtime: `tauri` 2.11.x (y `@tauri-apps/api` acorde). Generador de build: `tauri-build` 2.6.x. El CLI npm (`@tauri-apps/cli`) puede ir un parche por delante del crate. No forzar `tauri-build = 2.11`. Prohibido Tauri 3 alpha.
 
-Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`031-reloj-reunion`](openspec/changes/031-reloj-reunion/). `001`, `029` y `030` cerrados.
+Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`034-stage-reopen-arbol-local`](openspec/changes/034-stage-reopen-arbol-local/). `001` y `029`–`033` cerrados.
 
 ## Requisitos
 
@@ -61,7 +61,8 @@ Tras `npm run tauri dev`:
 12. Borrar el único perfil se rechaza (`LastProfile`). Duplicar copia settings y no selecciona la copia.
 13. Panel Cronómetro: armar una parte (título + minutos), Iniciar / Pausar / Terminar. El orador muestra el restante a pantalla completa y la barra; a 0:00 el desfase sale en rojo. El auditorio no pinta el reloj.
 14. Configuración → Orador: modo espejo+HUD o solo HUD. Los desplegables marcan consola y primaria; preview no implica un solo monitor.
+15. **Cronómetro → Obtener guía**: baja `mwb`/`w` y lista partes con minutos; pulsar una fila arma el reloj. **Multimedia** es un explorador de archivos (cache de la semana, carpetas locales, `.jwpub`); Abrir envía imagen o vídeo al auditorio y al orador.
 
-## Fuera de alcance (v1 / change 031)
+## Fuera de alcance (v1 / change 034)
 
 Grabador de audio, CCTV, precucha, himnario/Biblia en el git, parser JWPUB, catálogo HTTP, asistente de 9 pasos, Tauri 3 alpha.

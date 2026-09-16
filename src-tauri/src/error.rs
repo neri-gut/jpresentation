@@ -18,6 +18,14 @@ pub enum AppError {
     ClockNotArmed,
     #[error("the clock is not running")]
     ClockNotRunning,
+    #[error("publication cannot be read")]
+    UnreadablePub,
+    #[error("catalog item was not found")]
+    CatalogNotFound,
+    #[error("network: {0}")]
+    Network(String),
+    #[error("download cancelled")]
+    Cancelled,
     #[error("invariant: {0}")]
     Invariant(String),
     #[error("io: {0}")]
@@ -37,6 +45,10 @@ impl AppError {
             Self::MonitorMissing => "MonitorMissing",
             Self::ClockNotArmed => "ClockNotArmed",
             Self::ClockNotRunning => "ClockNotRunning",
+            Self::UnreadablePub => "UnreadablePub",
+            Self::CatalogNotFound => "CatalogNotFound",
+            Self::Network(_) => "Network",
+            Self::Cancelled => "Cancelled",
             Self::Invariant(_) => "Invariant",
             Self::Io(_) => "Io",
             Self::Db(_) => "Db",
@@ -93,6 +105,14 @@ mod tests {
         assert_eq!(
             AppErrorDto::from(AppError::ClockNotRunning).code,
             "ClockNotRunning"
+        );
+        assert_eq!(
+            AppErrorDto::from(AppError::UnreadablePub).code,
+            "UnreadablePub"
+        );
+        assert_eq!(
+            AppErrorDto::from(AppError::CatalogNotFound).code,
+            "CatalogNotFound"
         );
     }
 }

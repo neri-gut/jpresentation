@@ -13,7 +13,7 @@ El origen JW SHALL descomponerse en:
 - `ScheduleParser` — texto, tiempos y canciones a partir de `.jwpub` / `.epub`
 - `MediaResolver` — de un `MediaRef` a bytes en cache
 
-`MediaProvider` orquesta esos tres. Sustituir el catálogo o el parser MUST NOT reescribir la proyección. El frontend MUST NOT llamar URLs de contenido.
+`MediaProvider` orquesta esos tres. Sustituir el catálogo o el parser MUST NOT reescribir la proyección. El frontend MUST NOT llamar URLs de contenido. Host y path de GETPUBMEDIALINKS MUST vivir solo en el adaptador. `mwb` MAY reintentar una vez el mes anterior si el issue del lunes 404 (bimensual); `w` no. Checksum en disco = no repetir el GET del binario.
 
 #### Scenario: Listar la semana
 - GIVEN un perfil con idioma de contenido y provider activo

@@ -6,6 +6,10 @@ const CODE_KEYS: Record<string, string> = {
   MonitorMissing: "errors.monitorMissing",
   ClockNotArmed: "errors.clockNotArmed",
   ClockNotRunning: "errors.clockNotRunning",
+  UnreadablePub: "errors.unreadablePub",
+  CatalogNotFound: "errors.catalogNotFound",
+  Network: "errors.network",
+  Cancelled: "errors.cancelled",
   NotFound: "errors.notFound",
   Busy: "errors.busy",
 };

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import ClockBar from "@/components/ClockBar.vue";
+import { clockHeatColor } from "@/composables/clockColor";
 import { formatRemaining } from "@/composables/clockDisplay";
 import { useOutputStore } from "@/stores/output";
 import { useTimerStore } from "@/stores/timer";
@@ -22,6 +25,25 @@ const title = computed(
 );
 
 const time = computed(() => formatRemaining(timer.clock.remaining_ms));
+
+const heat = computed(() => {
+  if (timer.clock.remaining_ms < 0 || timer.clock.progress_pct >= 100) {
+    return "#f04438";
+  }
+  const assigned = timer.clock.assigned_ms;
+  if (!assigned) {
+    return "#12b76a";
+  }
+  return clockHeatColor(timer.clock.elapsed_ms / assigned);
+});
+
+const mediaSrc = computed(() => {
+  const path = output.stage.path;
+  if (!path || fullHud.value) {
+    return "";
+  }
+  return convertFileSrc(path);
+});
 
 function onMove(): void {
   cursorVisible.value = true;
@@ -48,15 +70,32 @@ onUnmounted(() => {
   <div
     class="speaker"
     :class="{ 'cursor-on': cursorVisible, 'is-full': fullHud, 'is-overlay': !fullHud }"
-    :data-hue="timer.clock.hue"
   >
+    <img
+      v-if="output.stage.kind === 'image' && mediaSrc"
+      :key="`img-${output.stage.rev}`"
+      class="frame"
+      :src="mediaSrc"
+      alt=""
+    />
+    <video
+      v-else-if="output.stage.kind === 'video' && mediaSrc"
+      :key="`vid-${output.stage.rev}`"
+      class="frame"
+      :src="mediaSrc"
+      autoplay
+      playsinline
+      muted
+    />
     <div class="hud">
       <p class="title">{{ title }}</p>
-      <p class="time">{{ time }}</p>
+      <p class="time" :style="{ color: heat }">{{ time }}</p>
     </div>
-    <div class="bar" :data-state="timer.clock.state" :data-hue="timer.clock.hue">
-      <span :style="{ width: `${timer.clock.progress_pct}%` }" />
-    </div>
+    <ClockBar
+      class="hud-bar"
+      :progress-pct="timer.clock.progress_pct"
+      :remaining-ms="timer.clock.remaining_ms"
+    />
   </div>
 </template>
 
@@ -68,6 +107,20 @@ onUnmounted(() => {
   cursor: none;
   user-select: none;
   position: relative;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 0;
+}
+
+.hud {
+  position: relative;
+  z-index: 1;
 }
 
 .speaker.cursor-on {
@@ -129,40 +182,11 @@ onUnmounted(() => {
   font-weight: 650;
 }
 
-.speaker[data-hue="green"] .time {
-  color: #12b76a;
-}
-
-.speaker[data-hue="amber"] .time {
-  color: #f5a524;
-}
-
-.speaker[data-hue="red"] .time {
-  color: #f04438;
-}
-
-.bar {
+.hud-bar {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 12px;
-  background: rgb(255 255 255 / 18%);
-  overflow: hidden;
-}
-
-.bar span {
-  display: block;
-  width: 0;
-  height: 100%;
-  background: #12b76a;
-}
-
-.bar[data-hue="amber"] span {
-  background: #f5a524;
-}
-
-.bar[data-hue="red"] span {
-  background: #f04438;
+  z-index: 2;
 }
 </style>

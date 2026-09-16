@@ -12,7 +12,13 @@ const SPEAKER_UI_CHANGED = "speaker://ui";
  * Audience stage cache. Rust owns the snapshot; this store only paints the last event.
  */
 export const useOutputStore = defineStore("output", () => {
-  const stage = ref<StageSnapshot>({ rev: 0, kind: "none" });
+  const stage = ref<StageSnapshot>({
+    rev: 0,
+    kind: "none",
+    name: null,
+    mime: null,
+    path: null,
+  });
   const speakerMode = ref<SpeakerMode>("mirror");
   let unlistenOutput: UnlistenFn | undefined;
   let unlistenSpeaker: UnlistenFn | undefined;

@@ -2,6 +2,8 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import ClockBar from "@/components/ClockBar.vue";
+import { clockHeatColor } from "@/composables/clockColor";
 import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
 import { useTimerStore } from "@/stores/timer";
@@ -21,6 +23,16 @@ const canPause = computed(() => clock.value.state === "running");
 const canFinish = computed(
   () => clock.value.state === "armed" || clock.value.state === "running",
 );
+
+const heat = computed(() => {
+  if (clock.value.remaining_ms < 0 || clock.value.progress_pct >= 100) {
+    return "#f04438";
+  }
+  if (!clock.value.assigned_ms) {
+    return "var(--jp-ok)";
+  }
+  return clockHeatColor(clock.value.elapsed_ms / clock.value.assigned_ms);
+});
 
 async function run(action: () => Promise<void>): Promise<void> {
   try {
@@ -49,13 +61,15 @@ function finish(): Promise<void> {
 
 <template>
   <div class="timer-controls">
-    <p class="status" :data-hue="clock.hue">
+    <p class="status">
       <span class="part">{{ clock.title ?? t("speaker.partPlaceholder") }}</span>
-      <span class="time">{{ display }}</span>
+      <span class="time" :style="{ color: heat }">{{ display }}</span>
     </p>
-    <div class="bar" :data-hue="clock.hue">
-      <span :style="{ width: `${clock.progress_pct}%` }" />
-    </div>
+    <ClockBar
+      compact
+      :progress-pct="clock.progress_pct"
+      :remaining-ms="clock.remaining_ms"
+    />
     <div class="row">
       <input
         v-model="title"
@@ -111,39 +125,6 @@ function finish(): Promise<void> {
   font-size: 1.35rem;
   font-weight: 650;
   font-family: var(--jp-mono);
-}
-
-.status[data-hue="green"] .time {
-  color: var(--jp-ok);
-}
-
-.status[data-hue="amber"] .time {
-  color: var(--jp-warn);
-}
-
-.status[data-hue="red"] .time {
-  color: var(--jp-danger);
-}
-
-.bar {
-  height: 6px;
-  background: color-mix(in srgb, var(--jp-fg) 12%, transparent);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  background: var(--jp-ok);
-}
-
-.bar[data-hue="amber"] span {
-  background: var(--jp-warn);
-}
-
-.bar[data-hue="red"] span {
-  background: var(--jp-danger);
 }
 
 .row {

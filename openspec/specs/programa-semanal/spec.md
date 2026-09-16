@@ -9,7 +9,7 @@ Referencia de forma del programa: el modelo público de `meeting-schedules-parse
 ## Requirements
 
 ### Requirement: Semana como unidad
-El operador SHALL poder pedir “esta semana” y “próxima semana” en el idioma de contenido del perfil. El sistema SHALL identificar las publicaciones de esa semana (`mwb` del mes, `w` del mes) y producir un `MeetingWeek` con partes ordenadas.
+El operador SHALL poder pedir “esta semana” y “próxima semana” en el idioma de contenido del perfil. El sistema SHALL identificar las publicaciones de esa semana (`mwb` del mes, `w` del mes) y producir un `MeetingWeek` con partes ordenadas. Persistencia: perfil + lunes ISO + kind. Si `Document.Content` no es HTML, el week MUST existir igual con los medios de `Multimedia`; MUST NOT descifrar.
 
 #### Scenario: Entre semana
 - GIVEN idioma ES y una fecha de lunes

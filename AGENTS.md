@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual de código es `031-reloj-reunion`. `001`, `029` y `030` están cerrados.
+No implementes nada que no esté en un change abierto. El change actual de código es `034-stage-reopen-arbol-local`. `001` y `029`–`033` están cerrados.
 
-## Change 031 (hacer ahora)
+## Change 034 (hacer ahora)
 
-Reloj de dominio: una parte suelta (armar / iniciar / pausar / terminar), tick en Rust, HUD y panel pintan el snapshot. Modo orador `mirror` | `hud_only`. Lista de monitores con consola/primaria. Sin cadena de partes, sin JWPUB, sin vídeo.
+Stage: cada Show usa un fichero nuevo; Cerrar suelta el webview. Árbol Multimedia: Home/Desktop + subcarpetas + diálogo nativo para añadir raíz. Sin tocar el degradado del cronómetro.
 
 ## Prohibido
 

@@ -6,6 +6,8 @@ import { useI18n } from "vue-i18n";
 import TimerControls from "@/components/TimerControls.vue";
 import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
+import { useExplorerStore } from "@/stores/explorer";
+import { useOutputStore } from "@/stores/output";
 import { useProfileStore } from "@/stores/profile";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
@@ -14,16 +16,25 @@ const { t } = useI18n();
 const ui = useUiStore();
 const profiles = useProfileStore();
 const timer = useTimerStore();
+const explorer = useExplorerStore();
+const output = useOutputStore();
 const { panel } = storeToRefs(ui);
 
 const placeholders = [
   { id: "songs", labelKey: "panel.songs" },
-  { id: "media", labelKey: "panel.media" },
   { id: "bible", labelKey: "panel.bible" },
 ] as const;
 
 const width = computed(() => (panel.value.collapsed ? 44 : panel.value.width));
 const collapsedTime = computed(() => formatRemaining(timer.clock.remaining_ms));
+const live = computed(() => output.stage.kind !== "none");
+const canShow = computed(() => explorer.cue !== null);
+const stageTitle = computed(() => {
+  if (live.value) {
+    return output.stage.name ?? t("panel.live");
+  }
+  return explorer.cue?.name ?? t("panel.cueEmpty");
+});
 
 async function toggle(): Promise<void> {
   if (!profiles.current) {
@@ -34,6 +45,26 @@ async function toggle(): Promise<void> {
       ...panel.value,
       collapsed: !panel.value.collapsed,
     });
+  } catch (err) {
+    ui.showToast(errorMessage(err, t));
+  }
+}
+
+async function showOnScreens(): Promise<void> {
+  const cue = explorer.cue;
+  if (!cue) {
+    return;
+  }
+  try {
+    await explorer.openOnStage(cue.path);
+  } catch (err) {
+    ui.showToast(errorMessage(err, t));
+  }
+}
+
+async function hideScreens(): Promise<void> {
+  try {
+    await explorer.closeStage();
   } catch (err) {
     ui.showToast(errorMessage(err, t));
   }
@@ -50,6 +81,28 @@ async function toggle(): Promise<void> {
     >
       {{ panel.collapsed ? "«" : "»" }}
     </button>
+    <section class="block stage">
+      <h2>{{ t("panel.media") }}</h2>
+      <template v-if="!panel.collapsed">
+        <p class="caption">{{ stageTitle }}</p>
+        <p class="state">{{ live ? t("panel.live") : t("panel.cued") }}</p>
+        <img
+          v-if="explorer.cue?.previewUrl"
+          class="thumb"
+          :src="explorer.cue.previewUrl"
+          alt=""
+        />
+        <p v-else-if="explorer.cue?.kind === 'video'" class="empty">{{ t("media.kind.video") }}</p>
+        <div class="row">
+          <button type="button" class="primary" :disabled="!canShow" @click="showOnScreens">
+            {{ t("panel.show") }}
+          </button>
+          <button type="button" :disabled="!live" @click="hideScreens">
+            {{ t("panel.hide") }}
+          </button>
+        </div>
+      </template>
+    </section>
     <section v-for="block in placeholders" :key="block.id" class="block">
       <h2>{{ t(block.labelKey) }}</h2>
       <p v-if="!panel.collapsed">{{ t("panel.placeholder") }}</p>
@@ -105,9 +158,46 @@ async function toggle(): Promise<void> {
   color: var(--jp-muted);
 }
 
-.block p {
+.block p,
+.caption,
+.state,
+.empty {
   margin: 0;
   color: var(--jp-muted);
+  font-size: 12px;
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  max-height: 7rem;
+  object-fit: contain;
+  margin: 0.35rem 0;
+  background: #111;
+}
+
+.row {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+button {
+  border: 1px solid var(--jp-border);
+  background: var(--jp-bg);
+  border-radius: 4px;
+  padding: var(--jp-pad);
+  flex: 1;
+}
+
+.primary {
+  border: 0;
+  background: var(--jp-accent);
+  color: var(--jp-accent-fg);
+}
+
+button:disabled {
+  opacity: 0.55;
 }
 
 .collapsed-time {

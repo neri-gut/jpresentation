@@ -3,10 +3,12 @@
 mod migrations;
 mod profile_store;
 mod settings_store;
+mod week_store;
 
 pub use migrations::{configure_connection, migrate};
 pub use profile_store::SqliteProfileStore;
-pub use settings_store::{SqliteSettingsStore, KEY_SURFACES};
+pub use settings_store::{SqliteSettingsStore, KEY_EXPLORER, KEY_SURFACES};
+pub use week_store::SqliteWeekStore;
 
 #[cfg(test)]
 pub(crate) use settings_store::{KEY_APPEARANCE, KEY_MEETING_SCHEDULE};

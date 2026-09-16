@@ -1,4 +1,5 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicBool;
 use std::sync::{Mutex, MutexGuard};
 
 use rusqlite::Connection;
@@ -20,6 +21,12 @@ pub struct AppState {
     /// Idle pool; later changes enqueue index/thumbnail/download work.
     #[allow(dead_code)]
     pub jobs: JobQueue,
+    /// `{app_data}/media` — `week/{lang}/{monday}/…`
+    pub media_root: PathBuf,
+    /// Set by `week_cancel` to stop an in-flight media download.
+    pub week_cancel: AtomicBool,
+    /// True while fetch/download holds the operator.
+    pub week_busy: AtomicBool,
 }
 
 impl AppState {
@@ -30,14 +37,24 @@ impl AppState {
             .app_data_dir()
             .map_err(|e| AppError::Io(e.to_string()))?;
         std::fs::create_dir_all(&dir).map_err(|e| AppError::Io(e.to_string()))?;
-        Self::open_path(&dir.join("jpresentation.db"))
+        Self::open_with_media(&dir.join("jpresentation.db"), &dir.join("media"))
     }
 
     /// Opens a specific database file. Used by tests with a temp path.
+    #[allow(dead_code)]
     pub fn open_path(db_path: &Path) -> Result<Self, AppError> {
+        let media = db_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join("media");
+        Self::open_with_media(db_path, &media)
+    }
+
+    fn open_with_media(db_path: &Path, media_root: &Path) -> Result<Self, AppError> {
         if let Some(parent) = db_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| AppError::Io(e.to_string()))?;
         }
+        std::fs::create_dir_all(media_root).map_err(|e| AppError::Io(e.to_string()))?;
         let conn = Connection::open(db_path)?;
         configure_connection(&conn)?;
         migrate(&conn)?;
@@ -46,6 +63,9 @@ impl AppState {
             output: Mutex::new(OutputState::idle()),
             providers: Mutex::new(ProviderRegistry::new()),
             jobs: JobQueue::new(),
+            media_root: media_root.to_path_buf(),
+            week_cancel: AtomicBool::new(false),
+            week_busy: AtomicBool::new(false),
         })
     }
 

@@ -2,6 +2,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::domain::explorer::{validate_explorer, ExplorerSetting};
 use crate::domain::platform::SurfacesSetting;
 use crate::domain::profile::{
     validate_appearance, AppearanceSetting, PanelSetting, SettingDto, SettingKeyDto,
@@ -14,6 +15,7 @@ pub const KEY_APPEARANCE: &str = "appearance";
 pub const KEY_SURFACES: &str = "surfaces";
 pub const KEY_PANEL: &str = "panel";
 pub const KEY_MEETING_SCHEDULE: &str = "meeting_schedule";
+pub const KEY_EXPLORER: &str = "explorer";
 
 /// rusqlite settings cells keyed by profile + name.
 pub struct SqliteSettingsStore<'a> {
@@ -61,6 +63,15 @@ impl<'a> SqliteSettingsStore<'a> {
         Ok(value.clone())
     }
 
+    /// Local folders the Multimedia explorer may list.
+    pub fn explorer(&self, profile_id: &str) -> Result<ExplorerSetting, AppError> {
+        let cell = self.get(&SettingKeyDto {
+            profile_id: profile_id.to_string(),
+            key: KEY_EXPLORER.into(),
+        })?;
+        parse_json(&cell.value_json)
+    }
+
     /// Typed helper used by `PlatformSurface` when placing windows.
     pub fn surfaces(&self, profile_id: &str) -> Result<SurfacesSetting, AppError> {
         let cell = self.get(&SettingKeyDto {
@@ -77,6 +88,7 @@ fn default_json(key: &str) -> Result<String, AppError> {
         KEY_SURFACES => encode(&SurfacesSetting::default()),
         KEY_PANEL => encode(&PanelSetting::default()),
         KEY_MEETING_SCHEDULE => encode(&MeetingScheduleSetting::default()),
+        KEY_EXPLORER => encode(&ExplorerSetting::default()),
         _ => Err(AppError::Invariant(format!("unknown setting key: {key}"))),
     }
 }
@@ -95,6 +107,10 @@ fn validate_value(key: &str, value_json: &str) -> Result<(), AppError> {
         KEY_MEETING_SCHEDULE => {
             let value = parse_json::<MeetingScheduleSetting>(value_json)?;
             validate_meeting_schedule(&value)
+        }
+        KEY_EXPLORER => {
+            let value = parse_json::<ExplorerSetting>(value_json)?;
+            validate_explorer(&value)
         }
         _ => Err(AppError::Invariant(format!("unknown setting key: {key}"))),
     }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useOutputStore } from "@/stores/output";
@@ -8,6 +9,14 @@ const { t } = useI18n();
 const output = useOutputStore();
 const cursorVisible = ref(false);
 let hideTimer = 0;
+
+const mediaSrc = computed(() => {
+  const path = output.stage.path;
+  if (!path) {
+    return "";
+  }
+  return convertFileSrc(path);
+});
 
 function onMove(): void {
   cursorVisible.value = true;
@@ -32,8 +41,22 @@ onUnmounted(() => {
 
 <template>
   <div class="audience" :class="{ 'cursor-on': cursorVisible }">
-    <p class="mark">{{ t("audience.placeholder") }}</p>
-    <span class="sr-only">{{ output.stage.kind }}</span>
+    <img
+      v-if="output.stage.kind === 'image' && mediaSrc"
+      :key="`img-${output.stage.rev}`"
+      class="frame"
+      :src="mediaSrc"
+      :alt="output.stage.name ?? ''"
+    />
+    <video
+      v-else-if="output.stage.kind === 'video' && mediaSrc"
+      :key="`vid-${output.stage.rev}`"
+      class="frame"
+      :src="mediaSrc"
+      autoplay
+      playsinline
+    />
+    <p v-else class="mark">{{ t("audience.placeholder") }}</p>
   </div>
 </template>
 
@@ -53,18 +76,17 @@ onUnmounted(() => {
   cursor: default;
 }
 
+.frame {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
 .mark {
   margin: 0;
   font-size: 2rem;
   letter-spacing: 0.08em;
   opacity: 0.55;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
 }
 </style>

@@ -33,7 +33,12 @@
     "timer": "Timer",
     "collapse": "Collapse panel",
     "expand": "Expand panel",
-    "placeholder": "Available in a later change."
+    "placeholder": "Available in a later change.",
+    "show": "Show",
+    "hide": "Close",
+    "live": "On screens",
+    "cued": "Ready to show",
+    "cueEmpty": "Select an image or video"
   },
   "songs": {
     "downloadHymnal": "Download songbook",
@@ -52,12 +57,49 @@
     "start": "Start",
     "pause": "Pause",
     "finish": "Finish",
-    "viewHint": "Arm a part, then Start. Finishing does not open media."
+    "viewHint": "Arm a part, then Start. Finishing does not open media.",
+    "fetchGuide": "Get this week's outline",
+    "noGuide": "No outline yet. Press Get this week's outline."
   },
   "media": {
     "thisWeek": "This week",
     "nextWeek": "Next week",
-    "downloadWeek": "Download this week's media"
+    "downloadWeek": "Download pending media",
+    "refresh": "Update week",
+    "empty": "No programme loaded. Press Update week.",
+    "emptyFolder": "This folder is empty.",
+    "preview": "Preview",
+    "previewHint": "Select an image. Use Show on the right panel to project it.",
+    "cueHint": "Choose a folder, then an image or video. Show on the right panel sends it to the screens.",
+    "songHint": "Hymnal track — download the songbook in a later change.",
+    "videoHint": "Video. Use Show on the right panel to project it.",
+    "jwpubHint": "Publication package. Open it to list images and videos inside.",
+    "videos": "Videos",
+    "images": "Images",
+    "up": "Up",
+    "roots": "Folders",
+    "places": "Places",
+    "folders": "Folders",
+    "sendStage": "Send to stage",
+    "closeStage": "Close stage",
+    "addFolder": "Add folder…",
+    "addPath": "Add path",
+    "addFolderHint": "Or paste an absolute folder path",
+    "kind": {
+      "dir": "folder",
+      "image": "image",
+      "video": "video",
+      "jwpub": "jwpub"
+    },
+    "minutes": "{n} min",
+    "itemCount": "{n} items",
+    "status": {
+      "embedded": "in package",
+      "ready": "ready",
+      "pending": "pending",
+      "pending_hymnal": "hymnal",
+      "failed": "failed"
+    }
   },
   "bible": {
     "downloadModule": "Download Bible",
@@ -135,6 +177,10 @@
     "monitorMissing": "The speaker display is not available. A preview window was opened instead.",
     "clockNotArmed": "Arm a part before starting the clock.",
     "clockNotRunning": "The clock is not running.",
+    "unreadablePub": "This publication cannot be read. Continue without the outline, or try again later.",
+    "catalogNotFound": "That issue is not in the catalog yet.",
+    "network": "The catalog could not be reached.",
+    "cancelled": "The download was cancelled.",
     "confirmDelete": "Delete this profile? This cannot be undone."
   },
   "common": {
