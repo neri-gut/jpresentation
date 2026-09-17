@@ -48,6 +48,8 @@ export const useWeekStore = defineStore("week", () => {
   const progress = ref<WeekProgressDto | null>(null);
   const busy = ref(false);
   const templates = ref<EventTemplateDto[]>([]);
+  const selectedMeeting = ref<MeetingKind>("midweek");
+  const selectedPartId = ref<string | null>(null);
   let unlisten: UnlistenFn | undefined;
 
   /** Loads persisted weeks and listens for progress events. */
@@ -176,6 +178,8 @@ export const useWeekStore = defineStore("week", () => {
     progress,
     busy,
     templates,
+    selectedMeeting,
+    selectedPartId,
     hydrate,
     reload,
     setWhich,

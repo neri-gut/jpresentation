@@ -8,6 +8,7 @@ import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
+import { useWeekStore } from "@/stores/week";
 import type { MeetingPart } from "@/types/dto";
 
 const props = defineProps<{
@@ -17,6 +18,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const timer = useTimerStore();
 const ui = useUiStore();
+const week = useWeekStore();
 
 const title = ref(t("timer.defaultTitle"));
 const minutes = ref(10);
@@ -28,7 +30,9 @@ const canPause = computed(() => clock.value.state === "running");
 const canFinish = computed(
   () => clock.value.state === "armed" || clock.value.state === "running",
 );
-const outline = computed(() => props.parts ?? []);
+const outline = computed(() =>
+  (props.parts ?? []).filter((part) => part.tone !== "song"),
+);
 const currentIndex = computed(() =>
   outline.value.findIndex((part) => part.title === clock.value.title),
 );
@@ -83,6 +87,7 @@ async function finish(): Promise<void> {
 function armPart(part: MeetingPart): Promise<void> {
   title.value = part.title;
   minutes.value = part.minutes && part.minutes > 0 ? part.minutes : 10;
+  week.selectedPartId = part.id;
   return run(() => timer.arm(title.value, minutes.value));
 }
 </script>

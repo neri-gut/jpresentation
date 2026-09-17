@@ -8,14 +8,10 @@ import AboutDialog from "@/components/AboutDialog.vue";
 import RightPanel from "@/components/RightPanel.vue";
 import SettingsDialog from "@/components/SettingsDialog.vue";
 import { registeredFeatures } from "@/features/registry";
-import { uiLocales } from "@/i18n";
-import { errorMessage } from "@/composables/errors";
-import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
 
 const { t } = useI18n();
 const features = registeredFeatures();
-const profiles = useProfileStore();
 const ui = useUiStore();
 const { toast, aboutOpen, settingsOpen, openMenu } = storeToRefs(ui);
 
@@ -23,20 +19,8 @@ function closeMenus(): void {
   openMenu.value = null;
 }
 
-function toggleMenu(id: "languages" | "tools" | "settings"): void {
+function toggleMenu(id: "tools" | "settings"): void {
   openMenu.value = openMenu.value === id ? null : id;
-}
-
-async function chooseLocale(locale: string): Promise<void> {
-  closeMenus();
-  if (!profiles.current) {
-    return;
-  }
-  try {
-    await profiles.update({ id: profiles.current.id, ui_locale: locale });
-  } catch (err) {
-    ui.showToast(errorMessage(err, t));
-  }
 }
 
 function openAbout(): void {
@@ -67,23 +51,6 @@ onUnmounted(() => {
     <header class="menubar" @click.stop>
       <div class="brand">{{ t("app.name") }}</div>
       <div class="menus">
-        <div class="menu">
-          <button type="button" class="menu-btn" @click="toggleMenu('languages')">
-            {{ t("menu.languages") }}
-          </button>
-          <ul v-if="openMenu === 'languages'" class="dropdown" role="menu">
-            <li v-for="locale in uiLocales" :key="locale.id">
-              <button
-                type="button"
-                role="menuitem"
-                :aria-current="profiles.current?.ui_locale === locale.id"
-                @click="chooseLocale(locale.id)"
-              >
-                {{ locale.name }}
-              </button>
-            </li>
-          </ul>
-        </div>
         <div class="menu">
           <button type="button" class="menu-btn" @click="toggleMenu('tools')">
             {{ t("menu.tools") }}

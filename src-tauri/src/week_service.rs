@@ -420,8 +420,8 @@ fn parse_cached_pub(
 }
 
 /// Resolves a system template id.
-pub fn resolve_system_template(id: &str) -> Option<EventTemplate> {
-    system_template(id)
+pub fn resolve_system_template(id: &str, langwritten: &str) -> Option<EventTemplate> {
+    system_template(id, langwritten)
 }
 
 pub fn parse_meeting_kind(raw: &str) -> Result<MeetingKind, AppError> {

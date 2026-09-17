@@ -78,7 +78,8 @@
     "toneAyf": "Ministry",
     "toneLiving": "Living",
     "toneSong": "Song",
-    "toneOther": "Other"
+    "toneOther": "Other",
+    "listHint": "Start, pause and the part list are on the right panel."
   },
   "media": {
     "thisWeek": "This week",

@@ -21,8 +21,8 @@ impl<'a> SqliteTemplateStore<'a> {
     }
 
     /// System templates first, then this profile's user templates.
-    pub fn list(&self, profile_id: &str) -> Result<Vec<EventTemplate>, AppError> {
-        let mut out = system_templates();
+    pub fn list(&self, profile_id: &str, langwritten: &str) -> Result<Vec<EventTemplate>, AppError> {
+        let mut out = system_templates(langwritten);
         let mut stmt = self.conn.prepare(
             "SELECT id, name, kind, payload_json FROM event_templates
              WHERE profile_id = ?1 ORDER BY name COLLATE NOCASE",
@@ -42,10 +42,15 @@ impl<'a> SqliteTemplateStore<'a> {
         Ok(out)
     }
 
-    /// Loads one user template. System ids return `None` here.
-    pub fn get(&self, profile_id: &str, id: &str) -> Result<Option<EventTemplate>, AppError> {
+    /// Loads one user template. System ids are resolved in `langwritten`.
+    pub fn get(
+        &self,
+        profile_id: &str,
+        id: &str,
+        langwritten: &str,
+    ) -> Result<Option<EventTemplate>, AppError> {
         if id.starts_with("sys:") {
-            return Ok(crate::domain::template::system_template(id));
+            return Ok(crate::domain::template::system_template(id, langwritten));
         }
         let row: Option<(String, String, String)> = self
             .conn
@@ -192,7 +197,7 @@ mod tests {
         store
             .save(&profile_id, None, "Memorial", TemplateKind::Event, vec![sample_part()])
             .expect("save");
-        let list = store.list(&profile_id).expect("list");
+        let list = store.list(&profile_id, "E").expect("list");
         assert!(list.iter().any(|t| t.id == "sys:midweek"));
         assert!(list.iter().any(|t| t.name == "Memorial" && t.source == TemplateSource::User));
     }

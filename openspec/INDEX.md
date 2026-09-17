@@ -2,7 +2,7 @@
 
 Migración de **JMultimedia 2.8.01** (Windows / .NET) a **Tauri 2.11 + Vue 3 + TypeScript + Rust + SQLite**.
 
-Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `037-contain-plantillas` (`001`, `029`–`036` cerrados).
+Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `038-idioma-panel-crono` (`001`, `029`–`037` cerrados).
 
 ## Cómo leer
 
@@ -10,7 +10,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 2. Plataforma: `arquitectura`, `practicas`, `sincronizacion`, `extensibilidad`, `seguridad`, `rendimiento`, `tema`, `cache`, `onboarding`, `licencia-updater`, `fundidos`, `cadena-suministro`, `devcontainer`
 3. Dominios: `canciones`, `audio`, `atajos`, `alertas`, `cronometro`, `programa-semanal`, `multimedia`, `proveedor-medios`, `biblia`, `texto`, `navegador`, `panel`, `perfiles`, `ventanas`
 4. `grabador` — retirado
-5. Changes `001` … `037-contain-plantillas`
+5. Changes `001` … `038-idioma-panel-crono`
 6. Research: `jwpub-mwb-S-202609`, `pub-media-getpubmedialinks`, `biblia-jwpub`, `idiomas`, `json-locales`, `himnario-sjjm`, `plantillas-evento`, `textos-csv`, `huecos`
 
 ## Decisiones
@@ -89,6 +89,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 | 035 | Rejilla del explorador + imagen del auditorio sin estirar |
 | 036 | Cover en auditorio + cronómetro de la guía |
 | 037 | Contain a pantalla + plantillas de cronómetro |
+| 038 | Idioma del perfil, cronómetro sin cánticos, lista en el panel |
 
 ## Implementación (cuando salgamos de specs)
 

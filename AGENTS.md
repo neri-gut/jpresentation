@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual de código es `037-contain-plantillas`. `001` y `029`–`036` están cerrados.
+No implementes nada que no esté en un change abierto. El change actual de código es `038-idioma-panel-crono`. `001` y `029`–`037` están cerrados.
 
-## Change 037 (hacer ahora)
+## Change 038 (hacer ahora)
 
-Imagen de stage a pantalla **sin recortar** (contain a escala máxima). Si la guía no trae HTML, plantilla de sistema + cánticos `sjjm`. Plantillas de usuario (CRUD) y visita de circuito. Sin AES, sin himnario.
+Idioma solo en Configuración. Guía y títulos de sección según `content_locale`. Sin cánticos en el cronómetro. Reloj/lista solo en el panel derecho.
 
 ## Prohibido
 

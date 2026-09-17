@@ -381,27 +381,13 @@ fn materialise_item<R: Read + std::io::Seek>(
     })
 }
 
-fn parts_from_html(html: Option<&str>, items: &[MediaItem], document_id: i64) -> Vec<MeetingPart> {
+fn parts_from_html(html: Option<&str>, _items: &[MediaItem], document_id: i64) -> Vec<MeetingPart> {
     let mut parts = Vec::new();
     if let Some(html) = html {
         let mut song_index = 0usize;
         let songs = extract_song_numbers(html);
         for (i, line) in block_lines(html).into_iter().enumerate() {
-            if let Some(track) = song_line_track(&line) {
-                let item = items.iter().find(|item| {
-                    matches!(
-                        &item.media_ref,
-                        MediaRef::Catalog { key_symbol, track: t, .. }
-                            if key_symbol.eq_ignore_ascii_case("sjjm") && *t == track
-                    )
-                });
-                parts.push(MeetingPart {
-                    id: format!("{document_id}:p{i}:song:{track}"),
-                    title: format!("Song {track}"),
-                    minutes: Some(5),
-                    tone: "song".into(),
-                    items: item.cloned().into_iter().collect(),
-                });
+            if song_line_track(&line).is_some() {
                 song_index += 1;
                 continue;
             }
@@ -410,11 +396,15 @@ fn parts_from_html(html: Option<&str>, items: &[MediaItem], document_id: i64) ->
                 if title.len() < 2 || title.len() > 80 {
                     continue;
                 }
+                let tone = tone_of(&line);
+                if tone == "song" {
+                    continue;
+                }
                 parts.push(MeetingPart {
                     id: format!("{document_id}:p{i}"),
                     title,
                     minutes: Some(minutes),
-                    tone: tone_of(&line),
+                    tone,
                     items: Vec::new(),
                 });
             }
@@ -734,7 +724,7 @@ mod tests {
             i.media_kind == MediaKind::Song && i.status == MediaStatus::PendingHymnal
         }));
         assert!(img.join("test.jpg").exists());
-        assert!(week.parts.iter().any(|p| p.title.starts_with("Song")));
+        assert!(!week.parts.iter().any(|p| p.tone == "song" || p.title.starts_with("Song")));
         assert!(week.parts.iter().any(|p| p.title.contains("Treasures") && p.minutes == Some(10)));
         assert!(week.parts.iter().any(|p| p.title.contains("Gems") && p.minutes == Some(10)));
         assert!(week.parts.iter().any(|p| p.title.contains("Bible Reading") && p.minutes == Some(4)));
@@ -748,8 +738,8 @@ mod tests {
         let parsed =
             parse_jwpub(&bytes, MeetingKind::Midweek, "S", &dir.path().join("img")).expect("parse");
         let week = &parsed.weeks[0];
-        assert!(week.parts.iter().any(|p| p.title.contains("Treasures")));
-        assert!(week.parts.iter().any(|p| p.title == "Song 1"));
+        assert!(week.parts.iter().any(|p| p.title.contains("Tesoros") || p.title.contains("Treasures")));
+        assert!(!week.parts.iter().any(|p| p.tone == "song" || p.title == "Song 1"));
         assert!(!week.parts.iter().any(|p| p.title == "Media"));
     }
 

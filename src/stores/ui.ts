@@ -61,7 +61,7 @@ export const useUiStore = defineStore("ui", () => {
   const toast = ref<string | null>(null);
   const aboutOpen = ref(false);
   const settingsOpen = ref(false);
-  const openMenu = ref<"languages" | "tools" | "settings" | null>(null);
+  const openMenu = ref<"tools" | "settings" | null>(null);
 
   /** Reads appearance, panel, surfaces, schedule, and the monitor list for a profile. */
   async function hydrate(profileId: string): Promise<void> {

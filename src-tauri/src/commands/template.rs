@@ -53,7 +53,7 @@ pub fn template_list(state: State<'_, AppState>) -> Result<Vec<EventTemplate>, A
         .selected()
         .map_err(AppErrorDto::from)?;
     SqliteTemplateStore::new(&conn)
-        .list(profile.id.as_str())
+        .list(profile.id.as_str(), &profile.content_locale)
         .map_err(AppErrorDto::from)
 }
 
@@ -107,9 +107,13 @@ pub fn template_apply(
         .selected()
         .map_err(AppErrorDto::from)?;
     let template = SqliteTemplateStore::new(&conn)
-        .get(profile.id.as_str(), &payload.template_id)
+        .get(
+            profile.id.as_str(),
+            &payload.template_id,
+            &profile.content_locale,
+        )
         .map_err(AppErrorDto::from)?
-        .or_else(|| resolve_system_template(&payload.template_id))
+        .or_else(|| resolve_system_template(&payload.template_id, &profile.content_locale))
         .ok_or_else(|| AppErrorDto::from(crate::error::AppError::NotFound))?;
     let mut bundle = load_week_for_profile(
         &SqliteWeekStore::new(&conn),

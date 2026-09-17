@@ -12,6 +12,7 @@ import { useProfileStore } from "@/stores/profile";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
 import { useWeekStore } from "@/stores/week";
+import type { MeetingPart } from "@/types/dto";
 
 const { t } = useI18n();
 const ui = useUiStore();
@@ -22,11 +23,20 @@ const output = useOutputStore();
 const week = useWeekStore();
 const { panel } = storeToRefs(ui);
 
+function withoutSongs(parts: MeetingPart[]): MeetingPart[] {
+  return parts.filter((part) => part.tone !== "song");
+}
+
 const outlineParts = computed(() => {
-  if (week.bundle.midweek.parts.length) {
-    return week.bundle.midweek.parts;
+  const meeting =
+    week.selectedMeeting === "weekend" ? week.bundle.weekend : week.bundle.midweek;
+  const parts = withoutSongs(meeting.parts);
+  if (parts.length) {
+    return parts;
   }
-  return week.bundle.weekend.parts;
+  const other =
+    week.selectedMeeting === "weekend" ? week.bundle.midweek : week.bundle.weekend;
+  return withoutSongs(other.parts);
 });
 
 const placeholders = [
@@ -124,6 +134,22 @@ async function hideScreens(): Promise<void> {
     </section>
     <section class="block timer">
       <h2>{{ t("panel.timer") }}</h2>
+      <div v-if="!panel.collapsed" class="row">
+        <button
+          type="button"
+          :class="{ primary: week.selectedMeeting === 'midweek' }"
+          @click="week.selectedMeeting = 'midweek'"
+        >
+          {{ t("settings.midweek") }}
+        </button>
+        <button
+          type="button"
+          :class="{ primary: week.selectedMeeting === 'weekend' }"
+          @click="week.selectedMeeting = 'weekend'"
+        >
+          {{ t("settings.weekend") }}
+        </button>
+      </div>
       <TimerControls v-if="!panel.collapsed" :parts="outlineParts" />
       <p v-else class="collapsed-time" :data-hue="timer.clock.hue">{{ collapsedTime }}</p>
     </section>

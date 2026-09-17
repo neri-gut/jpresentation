@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TimerControls from "@/components/TimerControls.vue";
 import { errorMessage } from "@/composables/errors";
 import { useTimerStore } from "@/stores/timer";
 import { useUiStore } from "@/stores/ui";
@@ -14,7 +13,6 @@ const week = useWeekStore();
 const timer = useTimerStore();
 const ui = useUiStore();
 
-const selectedMeeting = ref<MeetingKind>("midweek");
 const selectedPartId = ref<string | null>(null);
 const draftTitle = ref("");
 const draftMinutes = ref(10);
@@ -27,11 +25,20 @@ const meetings = computed(() => [
   { key: "weekend" as const, week: week.bundle.weekend, labelKey: "settings.weekend" },
 ]);
 
+const selectedMeeting = computed({
+  get: () => week.selectedMeeting,
+  set: (value: MeetingKind) => {
+    week.selectedMeeting = value;
+  },
+});
+
 const activeWeek = computed(() =>
   selectedMeeting.value === "midweek" ? week.bundle.midweek : week.bundle.weekend,
 );
 
-const panelParts = computed(() => activeWeek.value.parts);
+function visibleParts(meeting: MeetingWeek): MeetingPart[] {
+  return meeting.parts.filter((part) => part.tone !== "song");
+}
 
 const selectedTemplate = computed(() =>
   week.templates.find((item) => item.id === templateId.value),
@@ -56,17 +63,35 @@ async function run(action: () => Promise<void>): Promise<void> {
   }
 }
 
-function armPart(part: MeetingPart): Promise<void> {
+function fillDraft(part: MeetingPart): void {
   selectedPartId.value = part.id;
+  week.selectedPartId = part.id;
   draftTitle.value = part.title;
   draftMinutes.value = part.minutes && part.minutes > 0 ? part.minutes : 10;
-  draftTone.value = part.tone ?? "other";
+  draftTone.value = part.tone === "song" ? "other" : (part.tone ?? "other");
+}
+
+function armPart(part: MeetingPart): Promise<void> {
+  fillDraft(part);
   const minutes = part.minutes && part.minutes > 0 ? part.minutes : 10;
   return run(() => timer.arm(part.title, minutes));
 }
 
+watch(
+  () => week.selectedPartId,
+  (id) => {
+    if (!id || id === selectedPartId.value) {
+      return;
+    }
+    const part = activeWeek.value.parts.find((item) => item.id === id);
+    if (part) {
+      fillDraft(part);
+    }
+  },
+);
+
 function isEmpty(meeting: MeetingWeek): boolean {
-  return meeting.parts.length === 0;
+  return visibleParts(meeting).length === 0;
 }
 
 function persistParts(parts: MeetingPart[]): Promise<void> {
@@ -190,6 +215,7 @@ function deleteSelectedTemplate(): Promise<void> {
     <p v-if="week.progress" class="progress">
       {{ week.progress.phase }} {{ week.progress.done }}/{{ week.progress.total }}
     </p>
+    <p class="monday">{{ t("timer.listHint") }}</p>
 
     <div class="actions">
       <button type="button" :disabled="week.busy" @click="applyCircuit">
@@ -227,74 +253,70 @@ function deleteSelectedTemplate(): Promise<void> {
       </button>
     </div>
 
-    <div class="layout">
-      <div class="outline">
-        <section v-for="meeting in meetings" :key="meeting.key">
-          <h2>
-            <button
-              type="button"
-              class="meeting-tab"
-              :class="{ active: selectedMeeting === meeting.key }"
-              @click="selectedMeeting = meeting.key"
-            >
-              {{ t(meeting.labelKey) }}
-            </button>
-          </h2>
-          <p v-if="isEmpty(meeting.week)" class="empty">{{ t("timer.noGuide") }}</p>
-          <table v-else class="sheet">
-            <thead>
-              <tr>
-                <th>{{ t("timer.colTitle") }}</th>
-                <th>{{ t("timer.colMin") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="part in meeting.week.parts"
-                :key="part.id"
-                :data-tone="part.tone ?? 'other'"
-                :class="{
-                  current: timer.clock.title === part.title,
-                  picked: selectedPartId === part.id && selectedMeeting === meeting.key,
-                }"
-                @click="selectedMeeting = meeting.key; armPart(part)"
-              >
-                <td>{{ part.title }}</td>
-                <td class="min">{{ part.minutes ?? "" }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <div class="editor">
-          <select v-model="draftTone" :aria-label="t('timer.tone')">
-            <option value="treasures">{{ t("timer.toneTreasures") }}</option>
-            <option value="ayf">{{ t("timer.toneAyf") }}</option>
-            <option value="living">{{ t("timer.toneLiving") }}</option>
-            <option value="song">{{ t("timer.toneSong") }}</option>
-            <option value="other">{{ t("timer.toneOther") }}</option>
-          </select>
-          <input
-            v-model="draftTitle"
-            type="text"
-            maxlength="80"
-            :placeholder="t('timer.title')"
-          />
-          <input
-            v-model.number="draftMinutes"
-            type="number"
-            min="1"
-            max="180"
-            :aria-label="t('timer.minutes')"
-          />
-          <button type="button" @click="addRow">{{ t("timer.addRow") }}</button>
-          <button type="button" @click="modifyRow">{{ t("timer.modifyRow") }}</button>
-          <button type="button" :disabled="!selectedPartId" @click="deleteRow">
-            {{ t("timer.deleteRow") }}
+    <div class="outline">
+      <section v-for="meeting in meetings" :key="meeting.key">
+        <h2>
+          <button
+            type="button"
+            class="meeting-tab"
+            :class="{ active: selectedMeeting === meeting.key }"
+            @click="selectedMeeting = meeting.key"
+          >
+            {{ t(meeting.labelKey) }}
           </button>
-        </div>
+        </h2>
+        <p v-if="isEmpty(meeting.week)" class="empty">{{ t("timer.noGuide") }}</p>
+        <table v-else class="sheet">
+          <thead>
+            <tr>
+              <th>{{ t("timer.colTitle") }}</th>
+              <th>{{ t("timer.colMin") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="part in visibleParts(meeting.week)"
+              :key="part.id"
+              :data-tone="part.tone ?? 'other'"
+              :class="{
+                current: timer.clock.title === part.title,
+                picked: selectedPartId === part.id && selectedMeeting === meeting.key,
+              }"
+              @click="selectedMeeting = meeting.key; armPart(part)"
+            >
+              <td>{{ part.title }}</td>
+              <td class="min">{{ part.minutes ?? "" }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="editor">
+        <select v-model="draftTone" :aria-label="t('timer.tone')">
+          <option value="treasures">{{ t("timer.toneTreasures") }}</option>
+          <option value="ayf">{{ t("timer.toneAyf") }}</option>
+          <option value="living">{{ t("timer.toneLiving") }}</option>
+          <option value="other">{{ t("timer.toneOther") }}</option>
+        </select>
+        <input
+          v-model="draftTitle"
+          type="text"
+          maxlength="80"
+          :placeholder="t('timer.title')"
+        />
+        <input
+          v-model.number="draftMinutes"
+          type="number"
+          min="1"
+          max="180"
+          :aria-label="t('timer.minutes')"
+        />
+        <button type="button" @click="addRow">{{ t("timer.addRow") }}</button>
+        <button type="button" @click="modifyRow">{{ t("timer.modifyRow") }}</button>
+        <button type="button" :disabled="!selectedPartId" @click="deleteRow">
+          {{ t("timer.deleteRow") }}
+        </button>
       </div>
-      <TimerControls :parts="panelParts" />
     </div>
   </section>
 </template>
@@ -334,16 +356,10 @@ h1 {
   color: var(--jp-muted);
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
-  gap: 0.8rem;
-  min-height: 0;
-  flex: 1;
-}
-
 .outline {
   overflow: auto;
+  min-height: 0;
+  flex: 1;
 }
 
 h2 {

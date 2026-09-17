@@ -5,8 +5,10 @@ import { useI18n } from "vue-i18n";
 
 import { errorMessage } from "@/composables/errors";
 import { invokeCommand } from "@/composables/invoke";
+import { uiLocales } from "@/i18n";
 import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
+import { useWeekStore } from "@/stores/week";
 import type {
   AppearanceSetting,
   ContentLanguageDto,
@@ -20,6 +22,7 @@ const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const profiles = useProfileStore();
 const ui = useUiStore();
+const week = useWeekStore();
 const { appearance, surfaces, schedule, monitors } = storeToRefs(ui);
 
 const newName = ref("");
@@ -160,6 +163,18 @@ async function deleteProfile(): Promise<void> {
   }
 }
 
+async function changeUi(event: Event): Promise<void> {
+  if (!profiles.current) {
+    return;
+  }
+  const value = (event.target as HTMLSelectElement).value;
+  try {
+    await profiles.update({ id: profiles.current.id, ui_locale: value });
+  } catch (err) {
+    ui.showToast(errorMessage(err, t));
+  }
+}
+
 async function changeContent(event: Event): Promise<void> {
   if (!profiles.current) {
     return;
@@ -167,6 +182,7 @@ async function changeContent(event: Event): Promise<void> {
   const value = (event.target as HTMLSelectElement).value;
   try {
     await profiles.update({ id: profiles.current.id, content_locale: value });
+    await week.loadTemplates();
   } catch (err) {
     ui.showToast(errorMessage(err, t));
   }
@@ -346,6 +362,19 @@ async function identifyMonitors(): Promise<void> {
             {{ t("settings.delete") }}
           </button>
         </div>
+      </section>
+
+      <section>
+        <h2>{{ t("settings.uiLanguage") }}</h2>
+        <select
+          :value="profiles.current?.ui_locale ?? 'en'"
+          :disabled="busy"
+          @change="changeUi"
+        >
+          <option v-for="locale in uiLocales" :key="locale.id" :value="locale.id">
+            {{ locale.name }}
+          </option>
+        </select>
       </section>
 
       <section>
