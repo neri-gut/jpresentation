@@ -27,6 +27,10 @@ pub struct AppState {
     pub week_cancel: AtomicBool,
     /// True while fetch/download holds the operator.
     pub week_busy: AtomicBool,
+    /// Set by `hymnal_cancel` to stop an in-flight hymnal download.
+    pub hymnal_cancel: AtomicBool,
+    /// True while hymnal bulk download is in progress.
+    pub hymnal_busy: AtomicBool,
 }
 
 impl AppState {
@@ -66,6 +70,8 @@ impl AppState {
             media_root: media_root.to_path_buf(),
             week_cancel: AtomicBool::new(false),
             week_busy: AtomicBool::new(false),
+            hymnal_cancel: AtomicBool::new(false),
+            hymnal_busy: AtomicBool::new(false),
         })
     }
 

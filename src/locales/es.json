@@ -36,11 +36,23 @@
     "placeholder": "Disponible en un change posterior."
   },
   "songs": {
-    "downloadHymnal": "Descargar himnario",
-    "slotStart": "Inicio",
-    "slotMiddle": "Central",
-    "slotEnd": "Final",
-    "pendingCount": "{n} pendientes"
+    "title": "Canciones",
+    "search": "Buscar por número o título...",
+    "downloadHymnal": "Descargar canciones",
+    "updateHymnal": "Actualizar himnario",
+    "downloadSong": "Descargar",
+    "playSong": "Reproducir",
+    "slotStart": "Canción Inicio",
+    "slotMiddle": "Canción Central",
+    "slotEnd": "Canción Final",
+    "pendingCount": "{n} pendientes",
+    "downloading": "Descargando: {done} / {total} — {label}",
+    "cancel": "Cancelar",
+    "ready": "Descargada",
+    "pending": "Pendiente",
+    "refreshCatalog": "Actualizar catálogo",
+    "empty": "No se encontraron canciones.",
+    "playCancion": "Play Canción"
   },
   "timer": {
     "overtime": "+{time}",

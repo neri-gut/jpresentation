@@ -3,6 +3,7 @@ mod commands;
 mod db;
 pub mod domain;
 mod error;
+mod hymnal_service;
 mod jobs;
 mod platform;
 mod state;
@@ -17,10 +18,12 @@ use std::time::Duration;
 use commands::{
     clock_arm, clock_finish, clock_pause, clock_start, content_languages_list, explorer_add_root,
     explorer_list, explorer_open_jwpub, explorer_pick_root, explorer_preview, explorer_remove_root,
-    monitors_identify, monitors_list, output_get, profile_create, profile_delete, profile_duplicate,
-    profile_list, profile_select, profile_update, settings_get, settings_set, stage_close,
-    stage_open, template_apply, template_delete, template_list, template_save, week_cancel,
-    week_download_media, week_fetch, week_get, week_preview, week_restore, week_set_parts,
+    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_get, hymnal_play,
+    hymnal_refresh, monitors_identify, monitors_list, output_get, profile_create, profile_delete,
+    profile_duplicate, profile_list, profile_select, profile_update, settings_get, settings_set,
+    stage_close, stage_open, template_apply, template_delete, template_list, template_save,
+    week_cancel, week_download_media, week_fetch, week_get, week_preview, week_restore,
+    week_set_parts,
 };
 use db::SqliteSettingsStore;
 use domain::output::{OUTPUT_CHANGED, SPEAKER_UI_CHANGED, TIMER_CHANGED};
@@ -112,7 +115,13 @@ pub fn run() {
             explorer_open_jwpub,
             explorer_preview,
             stage_open,
-            stage_close
+            stage_close,
+            hymnal_get,
+            hymnal_refresh,
+            hymnal_download_song,
+            hymnal_download_all,
+            hymnal_cancel,
+            hymnal_play
         ])
         .run(tauri::generate_context!())
         .expect("error while running JPresentation");

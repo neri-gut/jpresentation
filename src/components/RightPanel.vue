@@ -7,6 +7,7 @@ import TimerControls from "@/components/TimerControls.vue";
 import { formatRemaining } from "@/composables/clockDisplay";
 import { errorMessage } from "@/composables/errors";
 import { useExplorerStore } from "@/stores/explorer";
+import { useHymnalStore } from "@/stores/hymnal";
 import { useOutputStore } from "@/stores/output";
 import { useProfileStore } from "@/stores/profile";
 import { useTimerStore } from "@/stores/timer";
@@ -19,6 +20,7 @@ const ui = useUiStore();
 const profiles = useProfileStore();
 const timer = useTimerStore();
 const explorer = useExplorerStore();
+const hymnal = useHymnalStore();
 const output = useOutputStore();
 const week = useWeekStore();
 const { panel } = storeToRefs(ui);
@@ -40,7 +42,6 @@ const outlineParts = computed(() => {
 });
 
 const placeholders = [
-  { id: "songs", labelKey: "panel.songs" },
   { id: "bible", labelKey: "panel.bible" },
 ] as const;
 
@@ -54,6 +55,23 @@ const stageTitle = computed(() => {
   }
   return explorer.cue?.name ?? t("panel.cueEmpty");
 });
+
+const activeSongTitle = computed(() => {
+  if (hymnal.selectedTrack) {
+    const s = hymnal.songs.find((x) => x.track === hymnal.selectedTrack);
+    return s ? s.title : `${t("nav.songs")} ${hymnal.selectedTrack}`;
+  }
+  return t("panel.cueEmpty");
+});
+
+async function playSelectedSong(): Promise<void> {
+  if (!hymnal.selectedTrack) return;
+  try {
+    await hymnal.playSong(hymnal.selectedTrack);
+  } catch (err) {
+    ui.showToast(errorMessage(err, t));
+  }
+}
 
 onMounted(() => {
   void week.hydrate().catch((err) => {
@@ -123,6 +141,32 @@ async function hideScreens(): Promise<void> {
             {{ t("panel.show") }}
           </button>
           <button type="button" :disabled="!live" @click="hideScreens">
+            {{ t("panel.hide") }}
+          </button>
+        </div>
+      </template>
+    </section>
+    <section class="block songs-block">
+      <h2>{{ t("panel.songs") }}</h2>
+      <template v-if="!panel.collapsed">
+        <p class="caption">{{ activeSongTitle }}</p>
+        <p class="state">
+          {{ live && output.stage.name === activeSongTitle ? t("panel.live") : t("panel.cued") }}
+        </p>
+        <div class="row">
+          <button
+            type="button"
+            class="primary"
+            :disabled="!hymnal.selectedTrack"
+            @click="playSelectedSong"
+          >
+            {{ t("songs.playCancion") }}
+          </button>
+          <button
+            v-if="live && output.stage.name === activeSongTitle"
+            type="button"
+            @click="hideScreens"
+          >
             {{ t("panel.hide") }}
           </button>
         </div>

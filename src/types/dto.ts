@@ -318,3 +318,37 @@ export function idleClock(): ClockSnapshot {
     hue: "green",
   };
 }
+
+export type SongStatus = "ready" | "pending" | "failed";
+
+export interface HymnalSongDto {
+  track: number;
+  title: string;
+  duration_formatted: string;
+  status: SongStatus;
+  cache_path?: string | null;
+  filesize: number;
+}
+
+export interface HymnalSlotsDto {
+  start?: number | null;
+  middle?: number | null;
+  end?: number | null;
+}
+
+export interface HymnalProgressDto {
+  phase: string;
+  done: number;
+  total: number;
+  label: string;
+}
+
+export interface HymnalBundleDto {
+  langwritten: string;
+  songs: HymnalSongDto[];
+  slots: HymnalSlotsDto;
+}
+
+export interface HymnalTrackRequestDto {
+  track: number;
+}

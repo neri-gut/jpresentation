@@ -2,6 +2,7 @@
 
 mod clock;
 mod explorer;
+mod hymnal;
 mod monitors;
 mod output;
 mod profile;
@@ -13,6 +14,10 @@ pub use clock::{clock_arm, clock_finish, clock_pause, clock_start};
 pub use explorer::{
     explorer_add_root, explorer_list, explorer_open_jwpub, explorer_pick_root, explorer_preview,
     explorer_remove_root, stage_close, stage_open,
+};
+pub use hymnal::{
+    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_get, hymnal_play,
+    hymnal_refresh,
 };
 pub use monitors::{monitors_identify, monitors_list};
 pub use output::output_get;

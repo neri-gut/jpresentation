@@ -18,11 +18,11 @@ Stack: **Tauri 2.11.x estable** (no 3 alpha) + Vue 3 + Vite + Pinia + TS + Rust 
 3. `openspec/changes/<id>/` — un change a la vez  
 4. Capturas `JMulti-01.png` … `JMulti-06.png` — flujo visual (sin Grabador)
 
-No implementes nada que no esté en un change abierto. El change actual de código es `038-idioma-panel-crono`. `001` y `029`–`037` están cerrados.
+No implementes nada que no esté en un change abierto. El change actual de código es `039-himnario-canciones`. `001` y `029`–`038` están cerrados.
 
-## Change 038 (hacer ahora)
+## Change 039 (hacer ahora)
 
-Idioma solo en Configuración. Guía y títulos de sección según `content_locale`. Sin cánticos en el cronómetro. Reloj/lista solo en el panel derecho.
+Himnario permanente (`sjjm` 1–163), vista de Canciones (estilo JMulti-01), descargas individuales y por lotes, ranuras de reunión, proyección en Stage y bloque en panel lateral.
 
 ## Prohibido
 

@@ -76,6 +76,12 @@ pub struct CatalogHit {
 pub trait PublicationCatalog: Send + Sync {
     /// Resolves metadata for a catalog key. `NotFound` on HTTP 404.
     fn lookup(&self, key: &CatalogKey) -> Result<CatalogHit, AppError>;
+
+    /// Lists hymnal tracks (1..=163) from `pub=sjjm`.
+    fn list_hymnal_tracks(
+        &self,
+        langwritten: &str,
+    ) -> Result<Vec<crate::domain::hymnal::HymnalCatalogTrack>, AppError>;
 }
 
 /// Downloads bytes for a catalog key. Implementations talk HTTP.

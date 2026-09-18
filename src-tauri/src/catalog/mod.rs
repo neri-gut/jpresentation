@@ -6,6 +6,7 @@ use std::sync::Mutex;
 
 use serde::Deserialize;
 
+use crate::domain::hymnal::HymnalCatalogTrack;
 use crate::domain::media::{CatalogFormat, CatalogHit, CatalogKey, MediaResolver, PublicationCatalog};
 use crate::error::AppError;
 
@@ -64,6 +65,85 @@ impl JwCdnCatalog {
             .map_err(|e| AppError::Network(e.to_string()))?;
         pick_file(&body, key)
     }
+
+    /// Fetches all MP4 tracks for `pub=sjjm`, filtering meeting songs 1..=163.
+    pub fn fetch_hymnal_tracks(
+        &self,
+        langwritten: &str,
+    ) -> Result<Vec<HymnalCatalogTrack>, AppError> {
+        let mut url = reqwest::Url::parse(&self.endpoint)
+            .map_err(|e| AppError::Network(e.to_string()))?;
+        {
+            let mut q = url.query_pairs_mut();
+            q.append_pair("output", "json");
+            q.append_pair("langwritten", langwritten);
+            q.append_pair("pub", "sjjm");
+            q.append_pair("fileformat", "MP4");
+        }
+        let response = self
+            .client
+            .get(url)
+            .header("Accept", "application/json")
+            .send()
+            .map_err(|e| AppError::Network(e.to_string()))?;
+        let status = response.status();
+        if status.as_u16() == 404 {
+            return Err(AppError::CatalogNotFound);
+        }
+        if !status.is_success() {
+            return Err(AppError::Network(format!("catalog HTTP {status}")));
+        }
+        let body: CatalogResponse = response
+            .json()
+            .map_err(|e| AppError::Network(e.to_string()))?;
+
+        let by_lang = body
+            .files
+            .get(langwritten)
+            .or_else(|| body.files.values().next())
+            .ok_or(AppError::CatalogNotFound)?;
+        let list = by_lang.get("MP4").ok_or(AppError::CatalogNotFound)?;
+
+        let mut by_track: HashMap<u32, Vec<&CatalogFile>> = HashMap::new();
+        for item in list {
+            if let Some(track) = item.track {
+                if crate::domain::hymnal::is_meeting_song_track(track) {
+                    by_track.entry(track).or_default().push(item);
+                }
+            }
+        }
+
+        let is_spanish = langwritten.eq_ignore_ascii_case("S");
+        let mut result = Vec::new();
+        for (track, items) in by_track {
+            if let Some(chosen) = items.into_iter().max_by_key(|item| label_rank(&item.label)) {
+                let title = chosen.title.clone().unwrap_or_else(|| {
+                    if is_spanish {
+                        format!("{track}. Cántico {track}")
+                    } else {
+                        format!("{track}. Song {track}")
+                    }
+                });
+                let duration_secs = chosen.duration.map(|d| d.round() as u32);
+                let duration_formatted = crate::domain::hymnal::normalize_duration(
+                    chosen.formatted_duration.as_deref(),
+                    chosen.duration,
+                );
+                result.push(HymnalCatalogTrack {
+                    track,
+                    title,
+                    duration_secs,
+                    duration_formatted,
+                    label: chosen.label.clone(),
+                    filesize: chosen.filesize,
+                    checksum: chosen.file.checksum.clone(),
+                    url: chosen.file.url.clone(),
+                });
+            }
+        }
+        result.sort_by_key(|t| t.track);
+        Ok(result)
+    }
 }
 
 impl Default for JwCdnCatalog {
@@ -78,6 +158,13 @@ impl Default for JwCdnCatalog {
 impl PublicationCatalog for JwCdnCatalog {
     fn lookup(&self, key: &CatalogKey) -> Result<CatalogHit, AppError> {
         Ok(self.lookup_file(key)?.0)
+    }
+
+    fn list_hymnal_tracks(
+        &self,
+        langwritten: &str,
+    ) -> Result<Vec<HymnalCatalogTrack>, AppError> {
+        self.fetch_hymnal_tracks(langwritten)
     }
 }
 
@@ -107,8 +194,16 @@ struct CatalogResponse {
     files: HashMap<String, HashMap<String, Vec<CatalogFile>>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct CatalogFile {
+    #[serde(default)]
+    title: Option<String>,
+    #[serde(default)]
+    track: Option<u32>,
+    #[serde(default)]
+    duration: Option<f64>,
+    #[serde(default, rename = "formattedDuration")]
+    formatted_duration: Option<String>,
     #[serde(default)]
     label: String,
     #[serde(default)]
@@ -116,7 +211,7 @@ struct CatalogFile {
     file: CatalogFileUrl,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct CatalogFileUrl {
     url: String,
     #[serde(default)]
@@ -160,6 +255,7 @@ fn label_rank(label: &str) -> u32 {
 pub struct MemoryCatalog {
     files: Mutex<HashMap<String, (CatalogHit, Vec<u8>)>>,
     missing: Mutex<Vec<String>>,
+    hymnal_tracks: Mutex<HashMap<String, Vec<HymnalCatalogTrack>>>,
 }
 
 #[cfg(test)]
@@ -169,6 +265,7 @@ impl MemoryCatalog {
         Self {
             files: Mutex::new(HashMap::new()),
             missing: Mutex::new(Vec::new()),
+            hymnal_tracks: Mutex::new(HashMap::new()),
         }
     }
 
@@ -183,6 +280,14 @@ impl MemoryCatalog {
             .lock()
             .expect("catalog")
             .insert(memory_id(&key), (hit, bytes));
+    }
+
+    /// Registers hymnal tracks for tests.
+    pub fn insert_hymnal_tracks(&self, langwritten: &str, tracks: Vec<HymnalCatalogTrack>) {
+        self.hymnal_tracks
+            .lock()
+            .expect("hymnal_tracks")
+            .insert(langwritten.to_string(), tracks);
     }
 
     /// Next lookup for this id returns `CatalogNotFound` once.
@@ -214,6 +319,18 @@ impl PublicationCatalog for MemoryCatalog {
             .expect("files")
             .get(&id)
             .map(|(hit, _)| hit.clone())
+            .ok_or(AppError::CatalogNotFound)
+    }
+
+    fn list_hymnal_tracks(
+        &self,
+        langwritten: &str,
+    ) -> Result<Vec<HymnalCatalogTrack>, AppError> {
+        self.hymnal_tracks
+            .lock()
+            .expect("hymnal_tracks")
+            .get(langwritten)
+            .cloned()
             .ok_or(AppError::CatalogNotFound)
     }
 }
@@ -261,6 +378,10 @@ mod tests {
                     "MP4".into(),
                     vec![
                         CatalogFile {
+                            title: None,
+                            track: Some(1),
+                            duration: None,
+                            formatted_duration: None,
                             label: "240p".into(),
                             filesize: 1,
                             file: CatalogFileUrl {
@@ -269,6 +390,10 @@ mod tests {
                             },
                         },
                         CatalogFile {
+                            title: None,
+                            track: Some(1),
+                            duration: None,
+                            formatted_duration: None,
                             label: "720p".into(),
                             filesize: 2,
                             file: CatalogFileUrl {

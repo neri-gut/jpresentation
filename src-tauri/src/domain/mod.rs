@@ -7,6 +7,7 @@
 pub mod clock;
 pub mod content;
 pub mod explorer;
+pub mod hymnal;
 pub mod jwpub;
 pub mod media;
 pub mod output;
@@ -28,6 +29,11 @@ pub use media::{
 pub use explorer::{
     classify_file, default_local_roots, list_dir, path_allowed, stage_file_name, ExplorerEntryDto,
     ExplorerKind, ExplorerListDto, ExplorerSetting,
+};
+pub use hymnal::{
+    format_duration, hymnal_dir, is_meeting_song_track, normalize_duration, HymnalBundleDto,
+    HymnalCatalogTrack, HymnalProgressDto, HymnalSlotsDto, HymnalSongDto, SongStatus,
+    HYMNAL_PROGRESS,
 };
 pub use week::{
     monday_for, mwb_issue_candidates, CivilDate, MediaItem, MediaKind, MediaRef, MediaStatus,

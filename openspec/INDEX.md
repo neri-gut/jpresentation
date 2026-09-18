@@ -2,7 +2,7 @@
 
 Migración de **JMultimedia 2.8.01** (Windows / .NET) a **Tauri 2.11 + Vue 3 + TypeScript + Rust + SQLite**.
 
-Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `038-idioma-panel-crono` (`001`, `029`–`037` cerrados).
+Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de JW Library. Specs de v1 **listas**. Change de código actual: `039-himnario-canciones` (`001`, `029`–`038` cerrados).
 
 ## Cómo leer
 
@@ -90,6 +90,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 | 036 | Cover en auditorio + cronómetro de la guía |
 | 037 | Contain a pantalla + plantillas de cronómetro |
 | 038 | Idioma del perfil, cronómetro sin cánticos, lista en el panel |
+| 039 | Himnario permanente (sjjm 1–163), vista de Canciones y audio/vídeo |
 
 ## Implementación (cuando salgamos de specs)
 

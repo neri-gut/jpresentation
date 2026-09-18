@@ -41,11 +41,23 @@
     "cueEmpty": "Select an image or video"
   },
   "songs": {
-    "downloadHymnal": "Download songbook",
-    "slotStart": "Opening",
-    "slotMiddle": "Middle",
-    "slotEnd": "Closing",
-    "pendingCount": "{n} pending"
+    "title": "Songs",
+    "search": "Search by number or title...",
+    "downloadHymnal": "Download songs",
+    "updateHymnal": "Update songbook",
+    "downloadSong": "Download",
+    "playSong": "Play",
+    "slotStart": "Opening Song",
+    "slotMiddle": "Middle Song",
+    "slotEnd": "Concluding Song",
+    "pendingCount": "{n} pending",
+    "downloading": "Downloading: {done} / {total} — {label}",
+    "cancel": "Cancel",
+    "ready": "Downloaded",
+    "pending": "Pending",
+    "refreshCatalog": "Refresh catalog",
+    "empty": "No songs found.",
+    "playCancion": "Play Song"
   },
   "timer": {
     "overtime": "+{time}",
