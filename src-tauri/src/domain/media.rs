@@ -84,10 +84,13 @@ pub trait PublicationCatalog: Send + Sync {
     ) -> Result<Vec<crate::domain::hymnal::HymnalCatalogTrack>, AppError>;
 }
 
-/// Downloads bytes for a catalog key. Implementations talk HTTP.
+/// Downloads bytes for a catalog key or resolved URL. Implementations talk HTTP.
 pub trait MediaResolver: Send + Sync {
-    /// Fetches the file body. Caller writes to `week/` and verifies checksum.
+    /// Fetches the file body for a catalog key. Caller writes to disk and verifies checksum.
     fn fetch(&self, key: &CatalogKey) -> Result<Vec<u8>, AppError>;
+
+    /// Fetches the file body directly from a URL resolved from the catalog.
+    fn fetch_url(&self, url: &str) -> Result<Vec<u8>, AppError>;
 }
 
 /// Builds a catalog key for a pending video item.

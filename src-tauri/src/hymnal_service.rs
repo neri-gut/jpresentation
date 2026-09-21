@@ -15,6 +15,37 @@ use crate::error::AppError;
 
 const CATALOG_FILENAME: &str = "catalog.json";
 
+/// Loads tracks metadata from catalog.json or from catalog API.
+pub fn get_catalog_tracks<C>(
+    catalog: &C,
+    media_root: &Path,
+    langwritten: &str,
+    refresh: bool,
+) -> Result<Vec<HymnalCatalogTrack>, AppError>
+where
+    C: PublicationCatalog,
+{
+    let dir = hymnal_dir(media_root, langwritten);
+    fs::create_dir_all(&dir).map_err(|e| AppError::Io(e.to_string()))?;
+    let catalog_path = dir.join(CATALOG_FILENAME);
+
+    if !refresh && catalog_path.exists() {
+        if let Ok(bytes) = fs::read(&catalog_path) {
+            if let Ok(tracks) = serde_json::from_slice::<Vec<HymnalCatalogTrack>>(&bytes) {
+                if !tracks.is_empty() {
+                    return Ok(tracks);
+                }
+            }
+        }
+    }
+
+    let tracks = catalog.list_hymnal_tracks(langwritten)?;
+    if let Ok(json) = serde_json::to_vec_pretty(&tracks) {
+        let _ = fs::write(&catalog_path, json);
+    }
+    Ok(tracks)
+}
+
 /// Loads the song list for a language.
 /// If `catalog.json` exists in `hymnal/{langwritten}`, loads from cache without network.
 /// If not, or if `refresh` is true, fetches from the catalog adapter and caches it.
@@ -29,32 +60,12 @@ where
 {
     let dir = hymnal_dir(media_root, langwritten);
     fs::create_dir_all(&dir).map_err(|e| AppError::Io(e.to_string()))?;
-    let catalog_path = dir.join(CATALOG_FILENAME);
 
-    let tracks = if !refresh && catalog_path.exists() {
-        if let Ok(bytes) = fs::read(&catalog_path) {
-            serde_json::from_slice::<Vec<HymnalCatalogTrack>>(&bytes).ok()
-        } else {
-            None
+    let tracks = match get_catalog_tracks(catalog, media_root, langwritten, refresh) {
+        Ok(t) => t,
+        Err(_) => {
+            return Ok(check_disk_status(fallback_songs(langwritten), &dir));
         }
-    } else {
-        None
-    };
-
-    let tracks = match tracks {
-        Some(t) => t,
-        None => match catalog.list_hymnal_tracks(langwritten) {
-            Ok(fetched) => {
-                if let Ok(json) = serde_json::to_vec_pretty(&fetched) {
-                    let _ = fs::write(&catalog_path, json);
-                }
-                fetched
-            }
-            Err(_) => {
-                // If network fails and no catalog cache, use fallback skeleton
-                return Ok(check_disk_status(fallback_songs(langwritten), &dir));
-            }
-        },
     };
 
     let songs = tracks
@@ -109,9 +120,10 @@ where
 
     // If already on disk, return ready
     if let Some(path) = find_cached_song_file(&dir, track) {
+        let title = format_default_title(langwritten, track);
         return Ok(HymnalSongDto {
             track,
-            title: format_default_title(langwritten, track),
+            title,
             duration_formatted: String::new(),
             status: SongStatus::Ready,
             cache_path: Some(path.to_string_lossy().into_owned()),
@@ -119,27 +131,67 @@ where
         });
     }
 
-    let key = CatalogKey {
-        langwritten: langwritten.to_string(),
-        pub_symbol: "sjjm".into(),
-        issue: None,
-        track: Some(track),
-        format: CatalogFormat::Mp4,
+    let tracks_res = get_catalog_tracks(catalog, media_root, langwritten, false);
+    let (bytes, title, duration_formatted, label) = match tracks_res {
+        Ok(tracks) => {
+            if let Some(item) = tracks.iter().find(|t| t.track == track) {
+                let bytes = if !item.url.is_empty() {
+                    catalog.fetch_url(&item.url)?
+                } else {
+                    let key = CatalogKey {
+                        langwritten: langwritten.to_string(),
+                        pub_symbol: "sjjm".into(),
+                        issue: None,
+                        track: Some(track),
+                        format: CatalogFormat::Mp4,
+                    };
+                    catalog.fetch(&key)?
+                };
+                if !item.checksum.is_empty() && md5_hex(&bytes) != item.checksum.to_ascii_lowercase() {
+                    return Err(AppError::Invariant("hymnal song checksum mismatch".into()));
+                }
+                let label = if item.label.is_empty() { "720p".to_string() } else { item.label.clone() };
+                (bytes, item.title.clone(), item.duration_formatted.clone(), label)
+            } else {
+                let key = CatalogKey {
+                    langwritten: langwritten.to_string(),
+                    pub_symbol: "sjjm".into(),
+                    issue: None,
+                    track: Some(track),
+                    format: CatalogFormat::Mp4,
+                };
+                let hit = catalog.lookup(&key)?;
+                let bytes = catalog.fetch(&key)?;
+                if !hit.checksum.is_empty() && md5_hex(&bytes) != hit.checksum.to_ascii_lowercase() {
+                    return Err(AppError::Invariant("hymnal song checksum mismatch".into()));
+                }
+                (bytes, format_default_title(langwritten, track), String::new(), "720p".into())
+            }
+        }
+        Err(_) => {
+            let key = CatalogKey {
+                langwritten: langwritten.to_string(),
+                pub_symbol: "sjjm".into(),
+                issue: None,
+                track: Some(track),
+                format: CatalogFormat::Mp4,
+            };
+            let hit = catalog.lookup(&key)?;
+            let bytes = catalog.fetch(&key)?;
+            if !hit.checksum.is_empty() && md5_hex(&bytes) != hit.checksum.to_ascii_lowercase() {
+                return Err(AppError::Invariant("hymnal song checksum mismatch".into()));
+            }
+            (bytes, format_default_title(langwritten, track), String::new(), "720p".into())
+        }
     };
 
-    let hit = catalog.lookup(&key)?;
-    let bytes = catalog.fetch(&key)?;
-    if !hit.checksum.is_empty() && md5_hex(&bytes) != hit.checksum.to_ascii_lowercase() {
-        return Err(AppError::Invariant("hymnal song checksum mismatch".into()));
-    }
-
-    let dest = dir.join(format!("sjjm_{track}_720p.mp4"));
+    let dest = dir.join(format!("sjjm_{track}_{label}.mp4"));
     fs::write(&dest, &bytes).map_err(|e| AppError::Io(e.to_string()))?;
 
     Ok(HymnalSongDto {
         track,
-        title: format_default_title(langwritten, track),
-        duration_formatted: String::new(),
+        title,
+        duration_formatted,
         status: SongStatus::Ready,
         cache_path: Some(dest.to_string_lossy().into_owned()),
         filesize: bytes.len() as u64,
@@ -160,18 +212,9 @@ where
     let dir = hymnal_dir(media_root, langwritten);
     fs::create_dir_all(&dir).map_err(|e| AppError::Io(e.to_string()))?;
 
-    let tracks = match catalog.list_hymnal_tracks(langwritten) {
-        Ok(t) => {
-            let catalog_path = dir.join(CATALOG_FILENAME);
-            if let Ok(json) = serde_json::to_vec_pretty(&t) {
-                let _ = fs::write(&catalog_path, json);
-            }
-            t
-        }
-        Err(err) => return Err(err),
-    };
-
+    let tracks = get_catalog_tracks(catalog, media_root, langwritten, false)?;
     let total = tracks.len() as u32;
+
     for (index, item) in tracks.iter().enumerate() {
         if cancel.load(Ordering::SeqCst) {
             return Err(AppError::Cancelled);
@@ -184,18 +227,25 @@ where
         });
 
         if find_cached_song_file(&dir, item.track).is_none() {
-            let key = CatalogKey {
-                langwritten: langwritten.to_string(),
-                pub_symbol: "sjjm".into(),
-                issue: None,
-                track: Some(item.track),
-                format: CatalogFormat::Mp4,
+            let bytes_res = if !item.url.is_empty() {
+                catalog.fetch_url(&item.url)
+            } else {
+                let key = CatalogKey {
+                    langwritten: langwritten.to_string(),
+                    pub_symbol: "sjjm".into(),
+                    issue: None,
+                    track: Some(item.track),
+                    format: CatalogFormat::Mp4,
+                };
+                catalog.fetch(&key)
             };
-            if let Ok(bytes) = catalog.fetch(&key) {
+
+            if let Ok(bytes) = bytes_res {
                 if item.checksum.is_empty()
                     || md5_hex(&bytes) == item.checksum.to_ascii_lowercase()
                 {
-                    let dest = dir.join(format!("sjjm_{}_{}.mp4", item.track, item.label));
+                    let label = if item.label.is_empty() { "720p" } else { &item.label };
+                    let dest = dir.join(format!("sjjm_{}_{}.mp4", item.track, label));
                     let _ = fs::write(dest, bytes);
                 }
             }
@@ -228,8 +278,7 @@ where
         return Err(AppError::Invariant("song has no cache path".into()));
     };
 
-    let title = format_default_title(langwritten, track);
-    Ok(output.open_media(StageKind::Video, title, "video/mp4".into(), path))
+    Ok(output.open_media(StageKind::Video, song.title, "video/mp4".into(), path))
 }
 
 fn format_default_title(langwritten: &str, track: u32) -> String {

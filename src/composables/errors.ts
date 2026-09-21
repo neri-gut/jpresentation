@@ -24,6 +24,9 @@ export function errorMessage(err: unknown, t: (key: string) => string): string {
     if (key) {
       return t(key);
     }
+    if (dto.message && dto.message.trim().length > 0) {
+      return dto.message;
+    }
   }
   return t("errors.invokeFailed");
 }

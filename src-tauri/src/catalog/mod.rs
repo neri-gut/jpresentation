@@ -171,9 +171,13 @@ impl PublicationCatalog for JwCdnCatalog {
 impl MediaResolver for JwCdnCatalog {
     fn fetch(&self, key: &CatalogKey) -> Result<Vec<u8>, AppError> {
         let (_hit, file_url) = self.lookup_file(key)?;
+        self.fetch_url(&file_url)
+    }
+
+    fn fetch_url(&self, url: &str) -> Result<Vec<u8>, AppError> {
         let response = self
             .client
-            .get(&file_url)
+            .get(url)
             .send()
             .map_err(|e| AppError::Network(e.to_string()))?;
         if !response.status().is_success() {
@@ -344,6 +348,28 @@ impl MediaResolver for MemoryCatalog {
             .get(&memory_id(key))
             .map(|(_, bytes)| bytes.clone())
             .ok_or(AppError::CatalogNotFound)
+    }
+
+    fn fetch_url(&self, url: &str) -> Result<Vec<u8>, AppError> {
+        let files = self.files.lock().expect("files");
+        for (_k, (_hit, bytes)) in files.iter() {
+            if _hit.key.pub_symbol == url || _k == url {
+                return Ok(bytes.clone());
+            }
+        }
+        let hymnal = self.hymnal_tracks.lock().expect("hymnal");
+        for (_lang, tracks) in hymnal.iter() {
+            for track in tracks {
+                if track.url == url {
+                    let key_id = format!("{}:sjjm:-:{}:MP4", _lang, track.track);
+                    if let Some((_, bytes)) = files.get(&key_id) {
+                        return Ok(bytes.clone());
+                    }
+                    return Ok(b"fake-test-song".to_vec());
+                }
+            }
+        }
+        Ok(b"fake-test-song".to_vec())
     }
 }
 
