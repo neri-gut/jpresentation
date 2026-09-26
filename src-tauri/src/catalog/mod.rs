@@ -96,53 +96,7 @@ impl JwCdnCatalog {
         let body: CatalogResponse = response
             .json()
             .map_err(|e| AppError::Network(e.to_string()))?;
-
-        let by_lang = body
-            .files
-            .get(langwritten)
-            .or_else(|| body.files.values().next())
-            .ok_or(AppError::CatalogNotFound)?;
-        let list = by_lang.get("MP4").ok_or(AppError::CatalogNotFound)?;
-
-        let mut by_track: HashMap<u32, Vec<&CatalogFile>> = HashMap::new();
-        for item in list {
-            if let Some(track) = item.track {
-                if crate::domain::hymnal::is_meeting_song_track(track) {
-                    by_track.entry(track).or_default().push(item);
-                }
-            }
-        }
-
-        let is_spanish = langwritten.eq_ignore_ascii_case("S");
-        let mut result = Vec::new();
-        for (track, items) in by_track {
-            if let Some(chosen) = items.into_iter().max_by_key(|item| label_rank(&item.label)) {
-                let title = chosen.title.clone().unwrap_or_else(|| {
-                    if is_spanish {
-                        format!("{track}. Cántico {track}")
-                    } else {
-                        format!("{track}. Song {track}")
-                    }
-                });
-                let duration_secs = chosen.duration.map(|d| d.round() as u32);
-                let duration_formatted = crate::domain::hymnal::normalize_duration(
-                    chosen.formatted_duration.as_deref(),
-                    chosen.duration,
-                );
-                result.push(HymnalCatalogTrack {
-                    track,
-                    title,
-                    duration_secs,
-                    duration_formatted,
-                    label: chosen.label.clone(),
-                    filesize: chosen.filesize,
-                    checksum: chosen.file.checksum.clone(),
-                    url: chosen.file.url.clone(),
-                });
-            }
-        }
-        result.sort_by_key(|t| t.track);
-        Ok(result)
+        collect_hymnal_tracks(&body, langwritten)
     }
 }
 
@@ -220,6 +174,61 @@ struct CatalogFileUrl {
     url: String,
     #[serde(default)]
     checksum: String,
+}
+
+fn collect_hymnal_tracks(
+    body: &CatalogResponse,
+    langwritten: &str,
+) -> Result<Vec<HymnalCatalogTrack>, AppError> {
+    let by_lang = body
+        .files
+        .get(langwritten)
+        .or_else(|| body.files.values().next())
+        .ok_or(AppError::CatalogNotFound)?;
+    let list = by_lang.get("MP4").ok_or(AppError::CatalogNotFound)?;
+
+    let mut by_track: HashMap<u32, Vec<&CatalogFile>> = HashMap::new();
+    for item in list {
+        if let Some(track) = item.track {
+            if crate::domain::hymnal::is_meeting_song_track(track) {
+                by_track.entry(track).or_default().push(item);
+            }
+        }
+    }
+
+    let is_spanish = langwritten.eq_ignore_ascii_case("S");
+    let mut result = Vec::new();
+    for (track, items) in by_track {
+        if let Some(chosen) = items
+            .into_iter()
+            .max_by_key(|item| label_rank(&item.label))
+        {
+            let title = chosen.title.clone().unwrap_or_else(|| {
+                if is_spanish {
+                    format!("{track}. Cántico {track}")
+                } else {
+                    format!("{track}. Song {track}")
+                }
+            });
+            let duration_secs = chosen.duration.map(|d| d as u32);
+            let duration_formatted = crate::domain::hymnal::normalize_duration(
+                chosen.formatted_duration.as_deref(),
+                chosen.duration,
+            );
+            result.push(HymnalCatalogTrack {
+                track,
+                title,
+                duration_secs,
+                duration_formatted,
+                label: chosen.label.clone(),
+                filesize: chosen.filesize,
+                checksum: chosen.file.checksum.clone(),
+                url: chosen.file.url.clone(),
+            });
+        }
+    }
+    result.sort_by_key(|t| t.track);
+    Ok(result)
 }
 
 fn pick_file(body: &CatalogResponse, key: &CatalogKey) -> Result<(CatalogHit, String), AppError> {
@@ -441,5 +450,49 @@ mod tests {
         let (hit, url) = pick_file(&body, &key).expect("pick");
         assert_eq!(url, "http://x/720");
         assert_eq!(hit.size, 2);
+    }
+
+    #[test]
+    fn hymnal_list_keeps_1_to_163_best_label_and_drops_audio_description() {
+        let body = CatalogResponse {
+            files: HashMap::from([(
+                "S".into(),
+                HashMap::from([(
+                    "MP4".into(),
+                    vec![
+                        catalog_file(1, "240p", "1. Las cualidades principales de Jehová", 140.864),
+                        catalog_file(1, "720p", "1. Las cualidades principales de Jehová", 140.864),
+                        catalog_file(2, "720p", "2. Tu nombre es Jehová", 179.2),
+                        catalog_file(601, "720p", "1. AD", 140.864),
+                    ],
+                )]),
+            )]),
+        };
+        let tracks = collect_hymnal_tracks(&body, "S").expect("tracks");
+        assert_eq!(tracks.len(), 2);
+        assert_eq!(tracks[0].track, 1);
+        assert_eq!(tracks[0].label, "720p");
+        assert_eq!(
+            tracks[0].title,
+            "1. Las cualidades principales de Jehová"
+        );
+        assert_eq!(tracks[0].duration_formatted, "02:20");
+        assert_eq!(tracks[1].track, 2);
+        assert_eq!(tracks[1].duration_formatted, "02:59");
+    }
+
+    fn catalog_file(track: u32, label: &str, title: &str, duration: f64) -> CatalogFile {
+        CatalogFile {
+            title: Some(title.into()),
+            track: Some(track),
+            duration: Some(duration),
+            formatted_duration: None,
+            label: label.into(),
+            filesize: 10,
+            file: CatalogFileUrl {
+                url: format!("http://x/{track}/{label}"),
+                checksum: "ab".into(),
+            },
+        }
     }
 }

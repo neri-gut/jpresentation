@@ -8,7 +8,7 @@ Stack: **Tauri 2.11** + Vue 3 + TypeScript + Rust + SQLite WAL.
 
 Las cajas `tauri` y `tauri-build` **no comparten número de parche**. Runtime: `tauri` 2.11.x (y `@tauri-apps/api` acorde). Generador de build: `tauri-build` 2.6.x. El CLI npm (`@tauri-apps/cli`) puede ir un parche por delante del crate. No forzar `tauri-build = 2.11`. Prohibido Tauri 3 alpha.
 
-Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`038-idioma-panel-crono`](openspec/changes/038-idioma-panel-crono/). `001` y `029`–`037` cerrados.
+Desarrollo dirigido por specs: [`openspec/INDEX.md`](openspec/INDEX.md). Change de código actual: [`039-himnario-canciones`](openspec/changes/039-himnario-canciones/). `001` y `029`–`038` cerrados.
 
 ## Requisitos
 
@@ -48,7 +48,7 @@ Lockfiles canónicos: `package-lock.json` y `src-tauri/Cargo.lock`. CI usa `npm 
 Tras `npm run tauri dev`:
 
 1. **Windows / macOS / Linux** — la consola se titula JPresentation y muestra menú Herramientas / Configuración. El idioma de la app y el de contenido se cambian solo en Configuración.
-2. Pestañas: Canciones, Cronómetro, Multimedia, Biblia, Navegador Web, Texto (placeholders). El panel derecho tiene esos cuatro bloques y **no** hay Grabador.
+2. Pestañas: Canciones, Cronómetro, Multimedia, Biblia, Navegador Web, Texto. Canciones lista el himnario `sjjm` 1–163 del idioma de contenido, con descarga individual, seleccionada o completa. El panel derecho tiene esos bloques y **no** hay Grabador.
 3. **Herramientas → Acerca de**: nombre JPresentation, stack Tauri/Vue/Rust y aviso de no afiliación.
 4. Con escritorio extendido, asignar Auditorio a la pantalla secundaria en Configuración: esa pantalla pasa a negro con el texto «JPresentation»; la consola permanece en la primaria. Si Auditorio queda en «ventana de previsualización», **no** se cubre sola la secundaria.
 5. Con un solo monitor (o preview explícito), auditorio y orador abren como ventanas flotantes 960×540 junto a la consola, no a pantalla completa encima de ella. El HUD del orador, sin medio, ocupa toda su ventana.
@@ -62,7 +62,8 @@ Tras `npm run tauri dev`:
 13. Panel Cronómetro: armar una parte (título + minutos), Iniciar / Pausar / Terminar. El orador muestra el restante a pantalla completa y la barra; a 0:00 el desfase sale en rojo. El auditorio no pinta el reloj.
 14. Configuración → Orador: modo espejo+HUD o solo HUD. Los desplegables marcan consola y primaria; preview no implica un solo monitor.
 15. **Cronómetro → Obtener guía**: baja `mwb`/`w` y lista partes con minutos; pulsar una fila arma el reloj. **Multimedia** es un explorador de archivos (cache de la semana, carpetas locales, `.jwpub`); Abrir envía imagen o vídeo al auditorio y al orador.
+16. **Canciones**: ↻ actualiza el catálogo; ⬇ en una fila baja ese MP4; casillas + «Download selected» baja las marcadas; «Download all pending songs» baja el resto. Play proyecta el vídeo en auditorio/orador.
 
-## Fuera de alcance (v1 / change 038)
+## Fuera de alcance (v1 / change 039)
 
-Grabador de audio, CCTV, precucha, himnario/Biblia en el git, parser JWPUB, catálogo HTTP, asistente de 9 pasos, Tauri 3 alpha.
+Grabador de audio, CCTV, precucha, himnario/Biblia en el git, descifrado AES de JWPUB, asistente de 9 pasos, Tauri 3 alpha.

@@ -20,6 +20,7 @@ export const useOutputStore = defineStore("output", () => {
     path: null,
   });
   const speakerMode = ref<SpeakerMode>("mirror");
+  const mediaOrigin = ref("");
   let unlistenOutput: UnlistenFn | undefined;
   let unlistenSpeaker: UnlistenFn | undefined;
 
@@ -29,6 +30,11 @@ export const useOutputStore = defineStore("output", () => {
       return;
     }
     const bundle = await invokeCommand<OutputBundleDto>("output_get");
+    try {
+      mediaOrigin.value = await invokeCommand<string>("media_origin");
+    } catch {
+      mediaOrigin.value = "";
+    }
     apply(bundle.stage);
     speakerMode.value = bundle.speaker_mode;
     unlistenOutput = await listen<StageSnapshot>(OUTPUT_CHANGED, (event) => {
@@ -59,5 +65,5 @@ export const useOutputStore = defineStore("output", () => {
     }
   }
 
-  return { stage, speakerMode, subscribe, apply, dispose };
+  return { stage, speakerMode, mediaOrigin, subscribe, apply, dispose };
 });

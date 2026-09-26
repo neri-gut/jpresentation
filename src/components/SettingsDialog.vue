@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { errorMessage } from "@/composables/errors";
 import { invokeCommand } from "@/composables/invoke";
 import { uiLocales } from "@/i18n";
+import { useHymnalStore } from "@/stores/hymnal";
 import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
 import { useWeekStore } from "@/stores/week";
@@ -23,6 +24,7 @@ const { t } = useI18n();
 const profiles = useProfileStore();
 const ui = useUiStore();
 const week = useWeekStore();
+const hymnal = useHymnalStore();
 const { appearance, surfaces, schedule, monitors } = storeToRefs(ui);
 
 const newName = ref("");
@@ -183,6 +185,7 @@ async function changeContent(event: Event): Promise<void> {
   try {
     await profiles.update({ id: profiles.current.id, content_locale: value });
     await week.loadTemplates();
+    await hymnal.hydrate();
   } catch (err) {
     ui.showToast(errorMessage(err, t));
   }

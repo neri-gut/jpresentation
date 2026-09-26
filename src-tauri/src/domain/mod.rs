@@ -27,8 +27,8 @@ pub use media::{
     ProviderRegistry, PublicationCatalog,
 };
 pub use explorer::{
-    classify_file, default_local_roots, list_dir, path_allowed, stage_file_name, ExplorerEntryDto,
-    ExplorerKind, ExplorerListDto, ExplorerSetting,
+    classify_file, copy_into_stage, default_local_roots, list_dir, path_allowed, stage_file_name,
+    ExplorerEntryDto, ExplorerKind, ExplorerListDto, ExplorerSetting,
 };
 pub use hymnal::{
     format_duration, hymnal_dir, is_meeting_song_track, normalize_duration, HymnalBundleDto,

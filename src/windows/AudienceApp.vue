@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useContainFit } from "@/composables/containFit";
+import { stageMediaSrc } from "@/composables/mediaSrc";
 import { useOutputStore } from "@/stores/output";
 
 const { t } = useI18n();
@@ -11,12 +11,11 @@ const output = useOutputStore();
 const cursorVisible = ref(false);
 let hideTimer = 0;
 
-const mediaSrc = computed(() => {
-  const path = output.stage.path;
-  if (!path) {
-    return "";
-  }
-  return convertFileSrc(path);
+const mediaSrc = computed(() => stageMediaSrc(output.stage, output.mediaOrigin));
+const videoRef = ref<HTMLVideoElement | null>(null);
+
+watch(mediaSrc, () => {
+  void videoRef.value?.play();
 });
 
 const stillRef = ref<HTMLImageElement | null>(null);
@@ -58,10 +57,12 @@ onUnmounted(() => {
     <video
       v-else-if="output.stage.kind === 'video' && mediaSrc"
       :key="`vid-${output.stage.rev}`"
+      ref="videoRef"
       class="motion"
       :src="mediaSrc"
       autoplay
       playsinline
+      @canplay="videoRef?.play()"
     />
     <p v-else class="mark">{{ t("audience.placeholder") }}</p>
   </div>

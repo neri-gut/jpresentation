@@ -96,7 +96,7 @@ pub fn normalize_duration(raw_str: Option<&str>, secs: Option<f64>) -> String {
     }
     if let Some(d) = secs {
         if d >= 0.0 {
-            return format_duration(d.round() as u32);
+            return format_duration(d as u32);
         }
     }
     String::new()
@@ -184,6 +184,7 @@ mod tests {
         assert_eq!(normalize_duration(Some("03:45"), None), "03:45");
         assert_eq!(normalize_duration(None, Some(180.0)), "03:00");
         assert_eq!(normalize_duration(None, Some(179.4)), "02:59");
+        assert_eq!(normalize_duration(None, Some(140.864)), "02:20");
         assert_eq!(normalize_duration(None, None), "");
     }
 

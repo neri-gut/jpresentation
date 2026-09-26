@@ -6,8 +6,8 @@ use tauri::{AppHandle, Emitter, State};
 use crate::catalog::md5_hex;
 use crate::db::{SqliteProfileStore, SqliteSettingsStore, KEY_EXPLORER};
 use crate::domain::explorer::{
-    classify_file, default_local_roots, list_dir, mime_for, parent_string, path_allowed,
-    stage_file_name, ExplorerEntryDto, ExplorerKind, ExplorerListDto, ExplorerSetting,
+    classify_file, copy_into_stage, default_local_roots, list_dir, mime_for, parent_string,
+    path_allowed, ExplorerEntryDto, ExplorerKind, ExplorerListDto, ExplorerSetting,
 };
 use crate::domain::jwpub::extract_jwpub_media;
 use crate::domain::output::{StageKind, OUTPUT_CHANGED};
@@ -249,16 +249,12 @@ pub fn stage_open(
         }
     };
     let ext = name.rsplit('.').next().unwrap_or("bin");
-    let dest_dir = state.media_root.join("stage");
-    std::fs::create_dir_all(&dest_dir)
-        .map_err(|e| AppErrorDto::from(AppError::Io(e.to_string())))?;
     let next_rev = {
         let output = state.lock_output().map_err(AppErrorDto::from)?;
         output.stage.rev.saturating_add(1)
     };
-    let dest = dest_dir.join(stage_file_name(next_rev, ext));
-    std::fs::copy(&path, &dest)
-        .map_err(|e| AppErrorDto::from(AppError::Io(e.to_string())))?;
+    let dest = copy_into_stage(&state.media_root, &path, next_rev, ext)
+        .map_err(AppErrorDto::from)?;
     let mime = mime_for(kind, &name);
     let snap = {
         let mut output = state.lock_output().map_err(AppErrorDto::from)?;

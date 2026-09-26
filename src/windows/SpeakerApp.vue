@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -7,6 +6,7 @@ import ClockBar from "@/components/ClockBar.vue";
 import { clockHeatColor } from "@/composables/clockColor";
 import { formatRemaining } from "@/composables/clockDisplay";
 import { useContainFit } from "@/composables/containFit";
+import { stageMediaSrc } from "@/composables/mediaSrc";
 import { useOutputStore } from "@/stores/output";
 import { useTimerStore } from "@/stores/timer";
 
@@ -39,12 +39,12 @@ const heat = computed(() => {
 });
 
 const mediaSrc = computed(() => {
-  const path = output.stage.path;
-  if (!path || fullHud.value) {
+  if (fullHud.value) {
     return "";
   }
-  return convertFileSrc(path);
+  return stageMediaSrc(output.stage, output.mediaOrigin);
 });
+const videoRef = ref<HTMLVideoElement | null>(null);
 
 const stillRef = ref<HTMLImageElement | null>(null);
 const { fitStyle, layout } = useContainFit(stillRef);
@@ -88,11 +88,13 @@ onUnmounted(() => {
     <video
       v-else-if="output.stage.kind === 'video' && mediaSrc"
       :key="`vid-${output.stage.rev}`"
+      ref="videoRef"
       class="motion"
       :src="mediaSrc"
       autoplay
       playsinline
       muted
+      @canplay="videoRef?.play()"
     />
     <div class="hud">
       <p class="title">{{ title }}</p>

@@ -9,6 +9,7 @@ import type {
   HymnalSlotsDto,
   HymnalSongDto,
   HymnalTrackRequestDto,
+  HymnalTracksRequestDto,
   StageSnapshot,
 } from "@/types/dto";
 
@@ -20,6 +21,7 @@ export const useHymnalStore = defineStore("hymnal", () => {
   const downloadProgress = ref<HymnalProgressDto | null>(null);
   const loading = ref(false);
   let unlisten: UnlistenFn | null = null;
+  let inflight: Promise<void> | null = null;
 
   async function ensureListening(): Promise<void> {
     if (unlisten) {
@@ -31,19 +33,29 @@ export const useHymnalStore = defineStore("hymnal", () => {
   }
 
   async function hydrate(): Promise<void> {
-    loading.value = true;
+    if (inflight) {
+      return inflight;
+    }
+    inflight = (async () => {
+      loading.value = true;
+      try {
+        await ensureListening();
+        const bundle = await invokeCommand<HymnalBundleDto>("hymnal_get");
+        songs.value = bundle.songs;
+        if (bundle.slots.start || bundle.slots.middle || bundle.slots.end) {
+          slots.value = bundle.slots;
+        }
+        if (!selectedTrack.value && songs.value.length > 0) {
+          selectedTrack.value = songs.value[0]?.track ?? 1;
+        }
+      } finally {
+        loading.value = false;
+      }
+    })();
     try {
-      await ensureListening();
-      const bundle = await invokeCommand<HymnalBundleDto>("hymnal_get");
-      songs.value = bundle.songs;
-      if (bundle.slots.start || bundle.slots.middle || bundle.slots.end) {
-        slots.value = bundle.slots;
-      }
-      if (!selectedTrack.value && songs.value.length > 0) {
-        selectedTrack.value = songs.value[0]?.track ?? 1;
-      }
+      await inflight;
     } finally {
-      loading.value = false;
+      inflight = null;
     }
   }
 
@@ -75,6 +87,25 @@ export const useHymnalStore = defineStore("hymnal", () => {
     try {
       await ensureListening();
       const result = await invokeCommand<HymnalSongDto[]>("hymnal_download_all");
+      songs.value = result;
+    } finally {
+      downloading.value = false;
+      downloadProgress.value = null;
+    }
+  }
+
+  async function downloadTracks(tracks: number[]): Promise<void> {
+    if (tracks.length === 0) {
+      return;
+    }
+    downloading.value = true;
+    downloadProgress.value = null;
+    try {
+      await ensureListening();
+      const result = await invokeCommand<HymnalSongDto[], HymnalTracksRequestDto>(
+        "hymnal_download_tracks",
+        { tracks },
+      );
       songs.value = result;
     } finally {
       downloading.value = false;
@@ -116,6 +147,7 @@ export const useHymnalStore = defineStore("hymnal", () => {
     refreshCatalog,
     downloadSong,
     downloadAll,
+    downloadTracks,
     cancelDownload,
     playSong,
     setSlot,

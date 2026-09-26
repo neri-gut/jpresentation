@@ -124,6 +124,21 @@ pub fn stage_file_name(rev: u64, ext: &str) -> String {
     format!("{rev}.{ext}")
 }
 
+/// Copies `src` into `{media_root}/stage/{rev}.{ext}` so the audience webview
+/// always loads a fresh asset URL.
+pub fn copy_into_stage(
+    media_root: &Path,
+    src: &Path,
+    rev: u64,
+    ext: &str,
+) -> Result<PathBuf, AppError> {
+    let dest_dir = media_root.join("stage");
+    fs::create_dir_all(&dest_dir).map_err(|e| AppError::Io(e.to_string()))?;
+    let dest = dest_dir.join(stage_file_name(rev, ext));
+    fs::copy(src, &dest).map_err(|e| AppError::Io(e.to_string()))?;
+    Ok(dest)
+}
+
 /// Lists one directory. Skips hidden names and unknown extensions.
 pub fn list_dir(path: &Path) -> Result<Vec<ExplorerEntryDto>, AppError> {
     let mut entries = Vec::new();
@@ -229,6 +244,16 @@ mod tests {
     fn stage_file_names_differ_by_rev() {
         assert_ne!(stage_file_name(1, "jpg"), stage_file_name(2, "jpg"));
         assert_eq!(stage_file_name(3, ".png"), "3.png");
+    }
+
+    #[test]
+    fn copy_into_stage_writes_rev_named_file() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let src = dir.path().join("song.mp4");
+        fs::write(&src, b"mp4").expect("src");
+        let dest = copy_into_stage(dir.path(), &src, 7, "mp4").expect("copy");
+        assert_eq!(dest.file_name().and_then(|n| n.to_str()), Some("7.mp4"));
+        assert_eq!(fs::read(&dest).expect("read"), b"mp4");
     }
 
     #[test]

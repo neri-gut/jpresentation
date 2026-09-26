@@ -1,6 +1,6 @@
 # Contribuir a JPresentation
 
-Specs primero: `openspec/INDEX.md` y el change abierto (`038-idioma-panel-crono`). No se implementa nada que no esté en un change.
+Specs primero: `openspec/INDEX.md` y el change abierto (`039-himnario-canciones`). No se implementa nada que no esté en un change.
 
 ## Entorno preferido
 

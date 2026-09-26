@@ -16,11 +16,11 @@ pub use explorer::{
     explorer_remove_root, stage_close, stage_open,
 };
 pub use hymnal::{
-    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_get, hymnal_play,
-    hymnal_refresh,
+    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_download_tracks, hymnal_get,
+    hymnal_play, hymnal_refresh,
 };
 pub use monitors::{monitors_identify, monitors_list};
-pub use output::output_get;
+pub use output::{media_origin, output_get};
 pub use template::{
     template_apply, template_delete, template_list, template_save, week_restore, week_set_parts,
 };

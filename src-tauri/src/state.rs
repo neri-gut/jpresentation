@@ -31,6 +31,8 @@ pub struct AppState {
     pub hymnal_cancel: AtomicBool,
     /// True while hymnal bulk download is in progress.
     pub hymnal_busy: AtomicBool,
+    /// `http://127.0.0.1:<port>` serving files under `media_root` for `<video>`.
+    pub media_origin: String,
 }
 
 impl AppState {
@@ -62,6 +64,7 @@ impl AppState {
         let conn = Connection::open(db_path)?;
         configure_connection(&conn)?;
         migrate(&conn)?;
+        let media_origin = crate::media_http::start(media_root.to_path_buf()).unwrap_or_default();
         Ok(Self {
             db: Mutex::new(conn),
             output: Mutex::new(OutputState::idle()),
@@ -72,6 +75,7 @@ impl AppState {
             week_busy: AtomicBool::new(false),
             hymnal_cancel: AtomicBool::new(false),
             hymnal_busy: AtomicBool::new(false),
+            media_origin,
         })
     }
 

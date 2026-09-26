@@ -14,6 +14,7 @@ commands.allow = [
   "monitors_list",
   "monitors_identify",
   "output_get",
+  "media_origin",
   "clock_arm",
   "clock_start",
   "clock_pause",
@@ -36,10 +37,17 @@ commands.allow = [
   "explorer_open_jwpub",
   "explorer_preview",
   "stage_open",
-  "stage_close"
+  "stage_close",
+  "hymnal_get",
+  "hymnal_refresh",
+  "hymnal_download_song",
+  "hymnal_download_all",
+  "hymnal_download_tracks",
+  "hymnal_cancel",
+  "hymnal_play"
 ]
 
 [[permission]]
 identifier = "output-read"
 description = "Read-only stage/clock snapshot so a surface can resync without mutating output."
-commands.allow = ["output_get"]
+commands.allow = ["output_get", "media_origin"]

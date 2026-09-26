@@ -4,17 +4,20 @@ import { useI18n } from "vue-i18n";
 
 import { errorMessage } from "@/composables/errors";
 import { useHymnalStore } from "@/stores/hymnal";
+import { useProfileStore } from "@/stores/profile";
 import { useUiStore } from "@/stores/ui";
 import { useWeekStore } from "@/stores/week";
 import type { HymnalSongDto } from "@/types/dto";
 
 const { t } = useI18n();
 const hymnal = useHymnalStore();
+const profiles = useProfileStore();
 const ui = useUiStore();
 const week = useWeekStore();
 
 const searchQuery = ref("");
 const downloadingSingle = ref<number | null>(null);
+const checkedTracks = ref<number[]>([]);
 
 const filteredSongs = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -43,6 +46,50 @@ const endTrack = computed({
   get: () => hymnal.slots.end ?? null,
   set: (val: number | null) => hymnal.setSlot("end", val ? Number(val) : null),
 });
+
+const pendingSongs = computed(() =>
+  hymnal.songs.filter((song) => song.status !== "ready"),
+);
+
+const pendingCount = computed(() => pendingSongs.value.length);
+
+const checkedPending = computed(() =>
+  checkedTracks.value.filter((track) =>
+    pendingSongs.value.some((song) => song.track === track),
+  ),
+);
+
+const allVisiblePendingChecked = computed(() => {
+  const visiblePending = filteredSongs.value.filter((song) => song.status !== "ready");
+  return (
+    visiblePending.length > 0 &&
+    visiblePending.every((song) => checkedTracks.value.includes(song.track))
+  );
+});
+
+function toggleChecked(track: number, checked: boolean): void {
+  if (checked) {
+    if (!checkedTracks.value.includes(track)) {
+      checkedTracks.value = [...checkedTracks.value, track];
+    }
+    return;
+  }
+  checkedTracks.value = checkedTracks.value.filter((item) => item !== track);
+}
+
+function toggleVisiblePending(checked: boolean): void {
+  const visiblePending = filteredSongs.value
+    .filter((song) => song.status !== "ready")
+    .map((song) => song.track);
+  if (checked) {
+    const set = new Set([...checkedTracks.value, ...visiblePending]);
+    checkedTracks.value = [...set];
+    return;
+  }
+  checkedTracks.value = checkedTracks.value.filter(
+    (track) => !visiblePending.includes(track),
+  );
+}
 
 function findSong(track: number | null | undefined): HymnalSongDto | undefined {
   if (!track) return undefined;
@@ -77,6 +124,16 @@ async function handleDownloadSingle(track: number): Promise<void> {
 async function handleDownloadAll(): Promise<void> {
   try {
     await hymnal.downloadAll();
+    checkedTracks.value = [];
+  } catch (err) {
+    ui.showToast(errorMessage(err, t));
+  }
+}
+
+async function handleDownloadSelected(): Promise<void> {
+  try {
+    await hymnal.downloadTracks(checkedPending.value);
+    checkedTracks.value = [];
   } catch (err) {
     ui.showToast(errorMessage(err, t));
   }
@@ -127,6 +184,18 @@ watch(
   { deep: true },
 );
 
+watch(
+  () => profiles.current?.content_locale,
+  async () => {
+    try {
+      await hymnal.hydrate();
+      syncSlotsFromWeek();
+    } catch (err) {
+      ui.showToast(errorMessage(err, t));
+    }
+  },
+);
+
 onMounted(async () => {
   try {
     await hymnal.hydrate();
@@ -159,7 +228,20 @@ onMounted(async () => {
         </button>
       </header>
 
+      <div class="list-toolbar">
+        <label class="check-all">
+          <input
+            type="checkbox"
+            :checked="allVisiblePendingChecked"
+            :disabled="filteredSongs.every((song) => song.status === 'ready')"
+            @change="toggleVisiblePending(($event.target as HTMLInputElement).checked)"
+          />
+          {{ t("songs.pendingCount", { n: pendingCount }) }}
+        </label>
+      </div>
+
       <div class="song-list" role="listbox">
+        <p v-if="hymnal.loading" class="empty-msg">{{ t("songs.loading") }}</p>
         <div
           v-for="song in filteredSongs"
           :key="song.track"
@@ -173,6 +255,14 @@ onMounted(async () => {
           @click="hymnal.selectedTrack = song.track"
           @dblclick="handlePlay(song.track)"
         >
+          <input
+            type="checkbox"
+            class="row-check"
+            :checked="checkedTracks.includes(song.track)"
+            :disabled="song.status === 'ready' || hymnal.downloading"
+            @click.stop
+            @change="toggleChecked(song.track, ($event.target as HTMLInputElement).checked)"
+          />
           <span class="track-number">{{ song.track }}.</span>
           <span class="song-title">{{ song.title.replace(/^\d+\.\s*/, '') }}</span>
           <span v-if="song.duration_formatted" class="duration">
@@ -202,7 +292,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <p v-if="filteredSongs.length === 0" class="empty-msg">
+        <p v-if="!hymnal.loading && filteredSongs.length === 0" class="empty-msg">
           {{ t("songs.empty") }}
         </p>
       </div>
@@ -299,15 +389,25 @@ onMounted(async () => {
           />
         </div>
 
-        <button
-          v-else
-          type="button"
-          class="download-all-btn"
-          :disabled="hymnal.downloading"
-          @click="handleDownloadAll"
-        >
-          ⬇ {{ t("songs.downloadHymnal") }}
-        </button>
+        <template v-else>
+          <button
+            type="button"
+            class="download-all-btn"
+            :disabled="hymnal.downloading || checkedPending.length === 0"
+            @click="handleDownloadSelected"
+          >
+            ⬇ {{ t("songs.downloadSelected") }}
+            <span v-if="checkedPending.length">({{ checkedPending.length }})</span>
+          </button>
+          <button
+            type="button"
+            class="download-all-btn"
+            :disabled="hymnal.downloading || pendingCount === 0"
+            @click="handleDownloadAll"
+          >
+            ⬇ {{ t("songs.downloadHymnal") }}
+          </button>
+        </template>
       </div>
     </section>
   </div>
@@ -361,12 +461,30 @@ onMounted(async () => {
   background: color-mix(in srgb, var(--jp-accent) 15%, transparent);
 }
 
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  font-size: 12px;
+  color: var(--jp-muted);
+}
+
+.check-all {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .song-list {
   flex: 1;
   overflow-y: auto;
   border: 1px solid var(--jp-border);
   border-radius: 4px;
   background: var(--jp-bg);
+}
+
+.row-check {
+  margin: 0;
 }
 
 .song-row {

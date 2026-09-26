@@ -352,3 +352,7 @@ export interface HymnalBundleDto {
 export interface HymnalTrackRequestDto {
   track: number;
 }
+
+export interface HymnalTracksRequestDto {
+  tracks: number[];
+}

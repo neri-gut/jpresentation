@@ -10,7 +10,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 2. Plataforma: `arquitectura`, `practicas`, `sincronizacion`, `extensibilidad`, `seguridad`, `rendimiento`, `tema`, `cache`, `onboarding`, `licencia-updater`, `fundidos`, `cadena-suministro`, `devcontainer`
 3. Dominios: `canciones`, `audio`, `atajos`, `alertas`, `cronometro`, `programa-semanal`, `multimedia`, `proveedor-medios`, `biblia`, `texto`, `navegador`, `panel`, `perfiles`, `ventanas`
 4. `grabador` — retirado
-5. Changes `001` … `038-idioma-panel-crono`
+5. Changes `001` … `039-himnario-canciones`
 6. Research: `jwpub-mwb-S-202609`, `pub-media-getpubmedialinks`, `biblia-jwpub`, `idiomas`, `json-locales`, `himnario-sjjm`, `plantillas-evento`, `textos-csv`, `huecos`
 
 ## Decisiones
@@ -100,7 +100,7 @@ Producto: **JPresentation** (`org.jpresentation.app`). Complemento no oficial de
 4. Cronómetro — `031`/`036` hecho; plantillas de usuario + contain `037`  
 5. Adaptador JWPUB + catálogo + cache `week/` — `032` hecho  
 6. Explorador → stage + outline en cronómetro — `033` hecho; reopen + árbol local `034`  
-7. Himnario + cadena de partes + audio  
+7. Himnario `sjjm` 1–163 + cadena de partes + audio — change `039` (lista y descargas)  
 8. Biblia + navegador  
 9. Empaque Win/macOS/Linux  
 

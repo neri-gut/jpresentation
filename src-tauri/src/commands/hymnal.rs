@@ -13,7 +13,8 @@ use crate::domain::output::{StageSnapshot, OUTPUT_CHANGED};
 use crate::domain::profile::ProfileStore;
 use crate::error::{AppError, AppErrorDto};
 use crate::hymnal_service::{
-    download_all_songs, download_single_song, load_or_fetch_songs, play_song_on_stage,
+    download_all_songs, download_single_song, download_songs, load_or_fetch_songs,
+    play_song_on_stage,
 };
 use crate::state::AppState;
 
@@ -21,6 +22,12 @@ use crate::state::AppState;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HymnalTrackRequestDto {
     pub track: u32,
+}
+
+/// Request payload to download a chosen subset of tracks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HymnalTracksRequestDto {
+    pub tracks: Vec<u32>,
 }
 
 /// Request payload to update song slots.
@@ -136,6 +143,51 @@ pub fn hymnal_download_all(
         &catalog,
         &state.media_root,
         &profile.content_locale,
+        &state.hymnal_cancel,
+        &mut |progress: HymnalProgressDto| {
+            let _ = app.emit(HYMNAL_PROGRESS, &progress);
+        },
+    );
+
+    state.hymnal_busy.store(false, Ordering::SeqCst);
+    result.map_err(AppErrorDto::from)
+}
+
+/// Downloads the chosen tracks that are still pending.
+#[tauri::command]
+pub fn hymnal_download_tracks(
+    payload: HymnalTracksRequestDto,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Vec<HymnalSongDto>, AppErrorDto> {
+    if state
+        .hymnal_busy
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        return Err(AppErrorDto::from(AppError::Busy));
+    }
+    state.hymnal_cancel.store(false, Ordering::SeqCst);
+
+    let conn = state.lock_db().map_err(AppErrorDto::from)?;
+    let profile = SqliteProfileStore::new(&conn)
+        .selected()
+        .map_err(AppErrorDto::from)?;
+    drop(conn);
+
+    let catalog = match JwCdnCatalog::new() {
+        Ok(c) => c,
+        Err(err) => {
+            state.hymnal_busy.store(false, Ordering::SeqCst);
+            return Err(AppErrorDto::from(err));
+        }
+    };
+
+    let result = download_songs(
+        &catalog,
+        &state.media_root,
+        &profile.content_locale,
+        Some(&payload.tracks),
         &state.hymnal_cancel,
         &mut |progress: HymnalProgressDto| {
             let _ = app.emit(HYMNAL_PROGRESS, &progress);

@@ -5,6 +5,7 @@ pub mod domain;
 mod error;
 mod hymnal_service;
 mod jobs;
+mod media_http;
 mod platform;
 mod state;
 mod week_service;
@@ -18,9 +19,11 @@ use std::time::Duration;
 use commands::{
     clock_arm, clock_finish, clock_pause, clock_start, content_languages_list, explorer_add_root,
     explorer_list, explorer_open_jwpub, explorer_pick_root, explorer_preview, explorer_remove_root,
-    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_get, hymnal_play,
-    hymnal_refresh, monitors_identify, monitors_list, output_get, profile_create, profile_delete,
-    profile_duplicate, profile_list, profile_select, profile_update, settings_get, settings_set,
+    hymnal_cancel, hymnal_download_all, hymnal_download_song, hymnal_download_tracks, hymnal_get,
+    hymnal_play, hymnal_refresh, media_origin, monitors_identify, monitors_list, output_get,
+    profile_create,
+    profile_delete, profile_duplicate, profile_list, profile_select, profile_update, settings_get,
+    settings_set,
     stage_close, stage_open, template_apply, template_delete, template_list, template_save,
     week_cancel, week_download_media, week_fetch, week_get, week_preview, week_restore,
     week_set_parts,
@@ -92,6 +95,7 @@ pub fn run() {
             settings_set,
             monitors_list,
             monitors_identify,
+            media_origin,
             output_get,
             clock_arm,
             clock_start,
@@ -120,6 +124,7 @@ pub fn run() {
             hymnal_refresh,
             hymnal_download_song,
             hymnal_download_all,
+            hymnal_download_tracks,
             hymnal_cancel,
             hymnal_play
         ])

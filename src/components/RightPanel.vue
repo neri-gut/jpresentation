@@ -77,6 +77,9 @@ onMounted(() => {
   void week.hydrate().catch((err) => {
     ui.showToast(errorMessage(err, t));
   });
+  void hymnal.hydrate().catch((err) => {
+    ui.showToast(errorMessage(err, t));
+  });
 });
 
 async function toggle(): Promise<void> {
